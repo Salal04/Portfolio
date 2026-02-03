@@ -1,8 +1,3 @@
-Perfect 👍
-Neeche **GitHub README–style Intro + Tech Stack** clean Markdown mein diya hai — short, professional, aur repo-ready.
-
----
-
 # 🌐 Dynamic Developer Portfolio
 
 A **dynamic and responsive personal portfolio website** built with **React** and powered by **Firebase**. The platform is designed to professionally showcase skills, education, projects, and experience through a modern and scalable interface.
