@@ -1,12 +1,42 @@
-# React + Vite
+Perfect 👍
+Neeche **GitHub README–style Intro + Tech Stack** clean Markdown mein diya hai — short, professional, aur repo-ready.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+---
 
-Currently, two official plugins are available:
+# 🌐 Dynamic Developer Portfolio
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+A **dynamic and responsive personal portfolio website** built with **React** and powered by **Firebase**. The platform is designed to professionally showcase skills, education, projects, and experience through a modern and scalable interface.
 
-## Expanding the ESLint configuration
+The portfolio supports real-time content updates via Firebase, enabling seamless data management without redeploying the frontend. With a component-based React architecture, the application delivers smooth navigation and an optimized user experience across all devices.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+* **React.js**
+* **JavaScript (ES6+)**
+* **HTML5**
+* **CSS3 / Tailwind CSS**
+
+### Backend & Services
+
+* **Firebase Firestore** – Dynamic data storage
+* **Firebase Authentication** – Secure access
+* **Firebase Hosting** – Deployment & hosting
+
+### Tools & Platforms
+
+* **Git & GitHub**
+* **VS Code**
+
+---
+
+
+## 📌 Live Demo
+
+Check out the live version of my portfolio here:
+👉 🔗 **[https://salal-five.vercel.app/](https://salal-five.vercel.app/)**
+
+This portfolio highlights my skills, education, projects, and experience in a dynamic and interactive way. It’s built with modern tools and deployed for anyone to view online.
