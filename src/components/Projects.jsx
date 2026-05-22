@@ -52,7 +52,7 @@ function Projects() {
         <div className="page-tag">Portfolio</div>
         <h1 className="page-title">What I've <span>Created</span></h1>
         <p className="page-sub">
-          Web projects built with React, JavaScript, Node.js and other modern technologies — each one solving a real problem.
+          Web projects built with Node.js or .NET, Computer Vision, DeepLearning and other modern technologies — each one solving a real problem.
         </p>
       </div>
 
