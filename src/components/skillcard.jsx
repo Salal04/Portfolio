@@ -1,9 +1,19 @@
-import { auth , db } from "../Js/firebase.config";
+import { db } from "../Js/firebase.config";
 import React, { useEffect, useState } from 'react';
-import { collection, deleteDoc, getDocs,doc } from 'firebase/firestore';
+import { collection, deleteDoc, getDocs, doc } from 'firebase/firestore';
 import Loader from "./loader";
-import styled from "styled-components";
 
+/* level label → numeric fill % */
+const levelMap = {
+  'beginner': 30, 'basic': 35,
+  'intermediate': 60, 'mid': 55,
+  'advanced': 80, 'expert': 95,
+  'proficient': 70, 'familiar': 45,
+};
+function levelToPercent(level = '') {
+  const key = level.toLowerCase().trim();
+  return levelMap[key] ?? 65;
+}
 
 const CardsList = (props) => {
   const [skills, setSkills] = useState('');
@@ -11,80 +21,169 @@ const CardsList = (props) => {
   useEffect(() => {
     const fetchSkills = async () => {
       try {
-        const skillsCollection = collection(db, "skills");
-        const querySnapshot = await getDocs(skillsCollection);
-
-        const data = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-
-        setSkills(data);
-      } catch (error) {
-        console.error("Error fetching skills:", error);
+        const snap = await getDocs(collection(db, "skills"));
+        setSkills(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (e) {
+        console.error("Error fetching skills:", e);
       }
     };
-
     fetchSkills();
   }, []);
 
-  const OnDelete = async (id)=>{
-    try{    
-      const docRef = doc(db , "skills" , id)
-      await deleteDoc(docRef);
+  const OnDelete = async (id) => {
+    try {
+      await deleteDoc(doc(db, "skills", id));
       setSkills(prev => prev.filter(item => item.id !== id));
-      alert("✅ Project deleted!" , id);
-    }catch(e){
-      console.log('Error ' ,e.message)
+      alert("✅ Skill deleted!");
+    } catch (e) {
       alert("❌ Delete failed!");
     }
-  }
+  };
 
-  if(!skills)
-  {
+  if (!skills) {
     return (
-      <div className="flex w-full h-full flex-col justify-center items-center mt-11">
-          <Loader/>
-          <p className='text-xl text-white'>Loading ... </p>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4rem' }}>
+        <Loader />
+        <p style={{ color: '#7a8fa6', marginTop: '1rem', fontFamily: 'DM Sans, sans-serif' }}>Loading skills...</p>
       </div>
-    )
+    );
   }
 
   return (
-    <div className='flex flex-wrap w-full justify-center gap-4'>
-      {skills.map(skill => (
-        <AdminSkillCard
-          key={skill.id}
-          skill={skill.skill}
-          level={skill.level}
-          des={props.des}
-          OnDelete={()=>{OnDelete(skill.id)}}
-        />
-      ))}
-    </div>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap');
+        :root {
+          --cyan: #08BDBA;
+          --cyan-dim: rgba(8,189,186,0.12);
+          --cyan-glow: rgba(8,189,186,0.3);
+          --glass: rgba(255,255,255,0.04);
+          --glass-border: rgba(255,255,255,0.08);
+          --text: #e8f0f8;
+          --muted: #7a8fa6;
+        }
+        .skills-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 1.2rem;
+        }
+        .skill-card {
+          background: var(--glass);
+          border: 1px solid var(--glass-border);
+          border-radius: 14px; padding: 1.4rem;
+          backdrop-filter: blur(10px);
+          transition: all 0.3s ease;
+          position: relative; overflow: hidden;
+          font-family: 'DM Sans', sans-serif;
+          animation: skillIn 0.4s ease both;
+          cursor: default;
+        }
+        .skill-card:hover {
+          border-color: var(--cyan);
+          transform: translateY(-4px);
+          box-shadow: 0 0 24px var(--cyan-dim);
+        }
+        .skill-card::after {
+          content: '';
+          position: absolute; inset: 0;
+          background: radial-gradient(circle at top left, var(--cyan-dim) 0%, transparent 60%);
+          opacity: 0; transition: opacity 0.3s;
+        }
+        .skill-card:hover::after { opacity: 1; }
+
+        .skill-icon-wrap {
+          width: 40px; height: 40px; border-radius: 10px;
+          background: var(--cyan-dim); border: 1px solid var(--cyan-glow);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 1.1rem; margin-bottom: 0.9rem;
+        }
+        .skill-name {
+          font-family: 'Syne', sans-serif;
+          font-size: 0.95rem; font-weight: 700; color: var(--text);
+          margin-bottom: 0.25rem;
+        }
+        .skill-level-text {
+          font-size: 0.72rem; color: var(--muted);
+          text-transform: capitalize; margin-bottom: 0.75rem;
+        }
+        .skill-bar-bg {
+          width: 100%; height: 4px; border-radius: 2px;
+          background: rgba(255,255,255,0.06); overflow: hidden;
+        }
+        .skill-bar-fill {
+          height: 100%; border-radius: 2px;
+          background: linear-gradient(90deg, var(--cyan), #00e5ff);
+          width: 0%;
+          transition: width 1s cubic-bezier(0.4,0,0.2,1) 0.3s;
+          box-shadow: 0 0 8px var(--cyan-glow);
+        }
+        .skill-card:hover .skill-bar-fill,
+        .skill-card.visible .skill-bar-fill {
+          width: var(--fill);
+        }
+
+        .skill-delete-btn {
+          margin-top: 0.9rem; width: 100%;
+          padding: 0.4rem; border-radius: 6px;
+          font-size: 0.75rem; cursor: pointer;
+          border: 1px solid rgba(239,68,68,0.3);
+          background: rgba(239,68,68,0.08); color: #ef4444;
+          transition: all 0.2s;
+        }
+        .skill-delete-btn:hover { background: rgba(239,68,68,0.2); }
+
+        @keyframes skillIn {
+          from { opacity: 0; transform: scale(0.92); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+
+      <div className="skills-grid">
+        {skills.map((skill, idx) => (
+          <SkillCard
+            key={skill.id}
+            skill={skill.skill}
+            level={skill.level}
+            showDelete={props.des}
+            onDelete={() => OnDelete(skill.id)}
+            delay={idx * 0.06}
+          />
+        ))}
+      </div>
+    </>
   );
 };
 
+function SkillCard({ skill, level, showDelete, onDelete, delay }) {
+  const [visible, setVisible] = useState(false);
+  const ref = React.useRef();
+  const fill = levelToPercent(level);
 
-const AdminSkillCard = (props) => {
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setVisible(true); obs.disconnect(); }
+    }, { threshold: 0.2 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
   return (
-    <div className="w-64 bg-white shadow-[0px_0px_15px_rgba(0,0,0,0.09)] p-9 space-y-3 relative overflow-hidden">
-      <div className="w-24 h-24 bg-violet-500 rounded-full absolute -right-5 -top-7">
-        <p className="absolute bottom-6 left-6 text-white text-2xl">Skill</p>
+    <div
+      ref={ref}
+      className={`skill-card${visible ? ' visible' : ''}`}
+      style={{ animationDelay: `${delay}s`, '--fill': `${fill}%` }}
+    >
+      <div className="skill-icon-wrap">⚡</div>
+      <p className="skill-name">{skill}</p>
+      <p className="skill-level-text">{level}</p>
+      <div className="skill-bar-bg">
+        <div className="skill-bar-fill" style={{ width: visible ? `${fill}%` : '0%' }} />
       </div>
-      <div className="fill-violet-500 w-12">
-        <svg viewBox="0 0 24 24" data-name="Layer 1" id="Layer_1" xmlns="http://www.w3.org/2000/svg">
-          <path d="m24,6.928v13.072h-11.5v3h5v1H6.5v-1h5v-3H0V4.5c0-1.379,1.122-2.5,2.5-2.5h12.98c-.253.295-.54.631-.856,1H2.5c-.827,0-1.5.673-1.5,1.5v14.5h22v-10.993l1-1.079Zm-12.749,3.094C19.058.891,19.093.855,19.11.838c1.118-1.115,2.936-1.113,4.052.002,1.114,1.117,1.114,2.936,0,4.052l-8.185,8.828c-.116,1.826-1.623,3.281-3.478,3.281h-5.59l.097-.582c.043-.257,1.086-6.16,5.244-6.396Zm2.749,3.478c0-1.379-1.122-2.5-2.5-2.5-2.834,0-4.018,3.569-4.378,5h4.378c1.378,0,2.5-1.121,2.5-2.5Zm.814-1.073l2.066-2.229c-.332-1.186-1.371-2.057-2.606-2.172-.641.749-1.261,1.475-1.817,2.125,1.117.321,1.998,1.176,2.357,2.277Zm.208-5.276c1.162.313,2.125,1.134,2.617,2.229l4.803-5.18c.737-.741.737-1.925.012-2.653-.724-.725-1.908-.727-2.637,0-.069.08-2.435,2.846-4.795,5.606Z" />
-        </svg>
-      </div>
-      <h1 className="font-bold text-xl text-black">{props.skill}</h1>
-      <p className="text-sm text-zinc-500 leading-6">
-        {props.level}
-      </p>
-      {props.des && <button onClick={props.OnDelete} className='px-4 cursor-pointer mx-2 mt-2 rounded-4xl border border-amber-50 hover:scale-105 transition-all duration-700 py-1 bg-blue-950 bottom-0 text-xl text-white shadow shadow-blue-950 '> Delete </button>}
+      {showDelete && (
+        <button className="skill-delete-btn" onClick={onDelete}>🗑 Delete</button>
+      )}
     </div>
   );
 }
-
 
 export default CardsList;

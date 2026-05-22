@@ -110,34 +110,15 @@ function Dashboard() {
         .hero-section {
           position: relative; z-index: 1;
           display: grid;
-          grid-template-columns: 55fr 45fr;
-          gap: 3rem;
-          padding: 5rem 5rem 3rem;
+          grid-template-columns: 1fr 1fr;
+          gap: 2rem;
+          padding: 5rem 4rem 3rem;
           align-items: center;
           min-height: 92vh;
-          max-width: 1400px;
-          margin: 0 auto;
-          width: 100%;
-          box-sizing: border-box;
-          overflow: hidden;
         }
-        .hero-left {
-          display: flex; flex-direction: column;
-          align-items: flex-start;
-          min-width: 0;
-          overflow: hidden;
-        }
-        @media (max-width: 900px) {
-          .hero-section {
-            grid-template-columns: 1fr;
-            padding: 3rem 1.5rem 2rem;
-            min-height: auto;
-          }
+        @media (max-width: 768px) {
+          .hero-section { grid-template-columns: 1fr; padding: 3rem 1.5rem 2rem; min-height: auto; }
           .hero-img-col { order: -1; }
-          .hero-left { align-items: center; text-align: center; }
-          .hero-bio { max-width: 100% !important; }
-          .hero-cta { justify-content: center; }
-          .stats-strip { justify-content: center; }
         }
 
         .hero-eyebrow {
@@ -153,12 +134,10 @@ function Dashboard() {
 
         .hero-name {
           font-family: 'Syne', sans-serif;
-          font-size: clamp(1.9rem, 3.2vw, 3rem);
-          font-weight: 800; line-height: 1.1;
+          font-size: clamp(2.8rem, 6vw, 5rem);
+          font-weight: 800; line-height: 1.05;
           margin: 1rem 0 0.5rem;
           animation: fadeSlideUp 0.7s 0.1s ease both;
-          word-break: break-word;
-          overflow-wrap: break-word;
         }
         .hero-name .highlight {
           background: linear-gradient(135deg, var(--cyan) 0%, #00e5ff 100%);
@@ -203,57 +182,23 @@ function Dashboard() {
 
         /* ── stats strip ── */
         .stats-strip {
-          display: flex;
-          flex-direction: row;
-          gap: 0;
-          margin-top: 2.5rem;
+          display: flex; gap: 2rem; margin-top: 2.5rem; flex-wrap: wrap;
           animation: fadeSlideUp 0.7s 0.5s ease both;
-          background: var(--glass);
-          border: 1px solid var(--glass-border);
-          border-radius: 12px;
-          overflow: hidden;
-          width: fit-content;
         }
-        .stat {
-          text-align: center;
-          padding: 1rem 2rem;
-          position: relative;
-        }
-        .stat + .stat::before {
-          content: '';
-          position: absolute; left: 0; top: 20%; bottom: 20%;
-          width: 1px;
-          background: var(--glass-border);
-        }
+        .stat { text-align: left; }
         .stat-num {
-          font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800;
+          font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800;
           color: var(--cyan); line-height: 1;
         }
-        .stat-label { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; white-space: nowrap; }
+        .stat-label { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
 
         /* ── hero image col ── */
-        .hero-img-col {
-          position: relative;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          flex-shrink: 0;
-        }
-        .img-ring-wrap {
-          position: relative;
-          display: inline-flex;
-          justify-content: center;
-          align-items: center;
-          flex-shrink: 0;
-        }
+        .hero-img-col { position: relative; display: flex; justify-content: center; align-items: center; }
         .img-ring {
-          position: relative;
-          width: 300px; height: 300px;
+          position: relative; width: 320px; height: 320px;
           animation: fadeSlideUp 0.7s 0.2s ease both;
-          flex-shrink: 0;
         }
-        @media (max-width: 1100px) { .img-ring { width: 260px; height: 260px; } }
-        @media (max-width: 900px)  { .img-ring { width: 220px; height: 220px; } }
+        @media (max-width: 768px) { .img-ring { width: 220px; height: 220px; } }
         .img-ring::before {
           content: ''; position: absolute; inset: -3px; border-radius: 50%;
           background: conic-gradient(var(--cyan), transparent, var(--cyan));
@@ -273,14 +218,12 @@ function Dashboard() {
           filter: drop-shadow(0 0 30px var(--cyan-glow));
         }
         .img-badge {
-          position: absolute; bottom: -10px; right: -20px;
-          background: rgba(7,13,20,0.85); backdrop-filter: blur(12px);
+          position: absolute; bottom: 10px; right: -10px;
+          background: var(--glass); backdrop-filter: blur(12px);
           border: 1px solid var(--glass-border);
           border-radius: 12px; padding: 0.5rem 0.9rem;
           font-size: 0.75rem; z-index: 3; white-space: nowrap;
           animation: float 3s ease-in-out infinite;
-          font-family: 'DM Sans', sans-serif;
-          color: var(--text);
         }
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
         .badge-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; margin-right: 5px; animation: pulse 1.5s infinite; }
@@ -361,7 +304,7 @@ function Dashboard() {
         {/* ── HERO ── */}
         <section className="hero-section">
           {/* Left col */}
-          <div className="hero-left">
+          <div>
             <span className="hero-eyebrow">
               <span className="eyebrow-dot" />
               Full Stack Developer
@@ -372,12 +315,11 @@ function Dashboard() {
               <span className="highlight">Muhammad Salal</span>
             </h1>
 
-            <p className="hero-role">Ai · Computer Vision · ML/ Deep Learning · ASP.NET · Mern Stack</p>
+            <p className="hero-role">MERN Stack · React · Node.js · Blazor · AI</p>
 
             <p className="hero-bio">
-              AI & Full-Stack Developer passionate about building intelligent web applications using Deep Learning,
-              Computer Vision. Focused on creating modern AI-powered solutions
-              with clean design, real-world impact, and scalable performance.
+              Building clean, responsive, and interactive web applications tailored to client needs.
+              Based in Lahore, Pakistan — let's bring your vision to life with fast and modern web solutions!
             </p>
 
             <div className="hero-cta">
@@ -414,14 +356,12 @@ function Dashboard() {
 
           {/* Right col — image */}
           <div className="hero-img-col">
-            <div className="img-ring-wrap">
-              <div className="img-ring">
-                <img src={profile} alt="Muhammad Salal" className="hero-img" />
-              </div>
-              <div className="img-badge">
-                <span className="badge-dot" />
-                Open to Opportunities
-              </div>
+            <div className="img-ring">
+              <img src={profile} alt="Muhammad Salal" className="hero-img" />
+            </div>
+            <div className="img-badge">
+              <span className="badge-dot" />
+              Open to Opportunities
             </div>
           </div>
         </section>

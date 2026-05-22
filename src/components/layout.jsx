@@ -1,94 +1,353 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavLink, Outlet } from "react-router-dom";
-import { useState } from "react";
 
-function NavBar()
-{
+const navLinks = [
+  { to: "Home",      label: "Home" },
+  { to: "Skills",    label: "Skills" },
+  { to: "Education", label: "Education" },
+  { to: "Projects",  label: "Projects" },
+  { to: "Contact",   label: "Contacts" },
+];
 
-    const [isOpen, setIsOpen] = useState(false);
-    const toggleDropdown = () => setIsOpen(!isOpen);
-    return(
+function NavBar() {
+  const [isOpen, setIsOpen]       = useState(false);
+  const [scrolled, setScrolled]   = useState(false);
+  const menuRef                   = useRef();
 
-    <nav className="bg-gray-800  ">
-        <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-            <div className="relative flex h-16 items-center justify-end ">
-                <div className="absolute inset-y-0 left-0 flex items-center sm:hidden ">
-                    <button type="button" onClick={toggleDropdown} className="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-white focus:outline-hidden focus:ring-inset" aria-controls="mobile-menu" aria-expanded="false">
-                    <span className="absolute-inset-0.5"></span>
-                    <span className="sr-only">Open main menu</span>
+  /* blur navbar on scroll */
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
-                    <svg className="block size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                    </svg>
+  /* close menu on outside click */
+  useEffect(() => {
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setIsOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-                    <svg className="hidden size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
-                    </button>
-                </div>
-                <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start md:justify-between">
-                    <div className="flex shrink-0 items-center">
-                    <img className="h-8 w-auto" src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500" alt="Your Company" />
-                    </div>
-                    <div className="hidden sm:ml-6 sm:block">
-                    <div className="flex space-x-4 text-lg">
-                        <NavLink to="Home"  className={({isActive})=>(`rounded-md px-3 py-2  font-medium text-white ${isActive?'bg-gray-900':'' }`)}>Home</NavLink>
-                        <NavLink to="Skills" className={({isActive})=>(`rounded-md px-3 py-2  font-medium text-gray-300 hover:bg-gray-700 hover:text-white ${isActive?'bg-gray-900':'' }`)}>Skills</NavLink>
-                        <NavLink to="Education" className={({isActive})=>(`rounded-md px-3 py-2  font-medium text-gray-300 hover:bg-gray-700 hover:text-white ${isActive?'bg-gray-900':'' }`)}>Education</NavLink>
-                        <NavLink to="Projects" className={({isActive})=>(`rounded-md px-3 py-2  font-medium text-gray-300 hover:bg-gray-700 hover:text-white ${isActive?'bg-gray-900':'' }`)}>Projects</NavLink>
-                        <NavLink to="Contact" className={({isActive})=>(`rounded-md px-3 py-2  font-medium text-gray-300 hover:bg-gray-700 hover:text-white ${isActive?'bg-gray-900':'' }`)}>Contacts</NavLink>
-                    </div>
-                    </div>
-                </div>
-            
-            </div>
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500&display=swap');
+
+        :root {
+          --cyan:        #08BDBA;
+          --cyan-dim:    rgba(8,189,186,0.12);
+          --cyan-glow:   rgba(8,189,186,0.3);
+          --bg:          #070d14;
+          --glass:       rgba(7,13,20,0.7);
+          --glass-border:rgba(255,255,255,0.08);
+          --text:        #e8f0f8;
+          --muted:       #7a8fa6;
+        }
+
+        /* ── navbar wrapper ── */
+        .nav-root {
+          position: fixed; top: 0; left: 0; right: 0;
+          z-index: 1000;
+          transition: background 0.3s, box-shadow 0.3s, border-color 0.3s;
+        }
+        .nav-root.nav-scrolled {
+          background: var(--glass);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          border-bottom: 1px solid var(--glass-border);
+          box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+        }
+        .nav-root.nav-top {
+          background: transparent;
+          border-bottom: 1px solid transparent;
+        }
+
+        .nav-inner {
+          max-width: 1300px;
+          margin: 0 auto;
+          padding: 0 2rem;
+          height: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        /* ── logo ── */
+        .nav-logo {
+          display: flex; align-items: center; gap: 0.5rem;
+          text-decoration: none;
+          font-family: 'Syne', sans-serif;
+          font-weight: 800; font-size: 1.2rem;
+          color: var(--text);
+          letter-spacing: -0.02em;
+          flex-shrink: 0;
+        }
+        .logo-mark {
+          width: 32px; height: 32px; border-radius: 8px;
+          background: var(--cyan);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 1rem; font-weight: 800; color: #070d14;
+          font-family: 'Syne', sans-serif;
+          box-shadow: 0 0 14px var(--cyan-glow);
+          transition: transform 0.25s, box-shadow 0.25s;
+        }
+        .nav-logo:hover .logo-mark {
+          transform: rotate(-6deg) scale(1.1);
+          box-shadow: 0 0 24px var(--cyan-glow);
+        }
+
+        /* ── desktop links ── */
+        .nav-links {
+          display: flex; align-items: center; gap: 0.25rem;
+          list-style: none; margin: 0; padding: 0;
+        }
+        @media (max-width: 768px) { .nav-links { display: none; } }
+
+        .nav-link {
+          position: relative;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 0.9rem; font-weight: 500;
+          color: var(--muted);
+          text-decoration: none;
+          padding: 0.45rem 1rem;
+          border-radius: 8px;
+          border: 1px solid transparent;
+          transition: color 0.2s, background 0.2s, border-color 0.2s;
+          white-space: nowrap;
+        }
+        .nav-link:hover {
+          color: var(--text);
+          background: rgba(255,255,255,0.05);
+        }
+        .nav-link.active {
+          color: var(--text);
+          border-color: var(--glass-border);
+          background: rgba(255,255,255,0.06);
+        }
+        .nav-link.active::after {
+          content: '';
+          position: absolute; bottom: -1px; left: 25%; right: 25%;
+          height: 2px; border-radius: 1px;
+          background: var(--cyan);
+          box-shadow: 0 0 8px var(--cyan-glow);
+        }
+
+        /* ── hamburger ── */
+        .nav-hamburger {
+          display: none;
+          background: var(--glass);
+          border: 1px solid var(--glass-border);
+          border-radius: 8px;
+          padding: 0.5rem;
+          cursor: pointer;
+          color: var(--text);
+          transition: border-color 0.2s, background 0.2s;
+        }
+        .nav-hamburger:hover { border-color: var(--cyan); background: var(--cyan-dim); }
+        @media (max-width: 768px) { .nav-hamburger { display: flex; align-items: center; justify-content: center; } }
+
+        /* ── mobile menu ── */
+        .mobile-menu {
+          overflow: hidden;
+          max-height: 0;
+          opacity: 0;
+          transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+          background: rgba(7,13,20,0.95);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid var(--glass-border);
+        }
+        .mobile-menu.open {
+          max-height: 400px;
+          opacity: 1;
+        }
+        .mobile-menu-inner {
+          padding: 0.75rem 1.5rem 1.5rem;
+          display: flex; flex-direction: column; gap: 0.25rem;
+        }
+        .mobile-link {
+          font-family: 'DM Sans', sans-serif;
+          font-size: 1rem; font-weight: 500;
+          color: var(--muted);
+          text-decoration: none;
+          padding: 0.75rem 1rem;
+          border-radius: 10px;
+          border: 1px solid transparent;
+          transition: all 0.2s;
+          display: flex; align-items: center; gap: 0.6rem;
+        }
+        .mobile-link::before {
+          content: ''; width: 5px; height: 5px; border-radius: 50%;
+          background: var(--muted); flex-shrink: 0;
+          transition: background 0.2s;
+        }
+        .mobile-link:hover {
+          color: var(--text);
+          background: rgba(255,255,255,0.05);
+          border-color: var(--glass-border);
+        }
+        .mobile-link.active {
+          color: var(--cyan);
+          background: var(--cyan-dim);
+          border-color: rgba(8,189,186,0.2);
+        }
+        .mobile-link.active::before { background: var(--cyan); box-shadow: 0 0 6px var(--cyan-glow); }
+
+        /* ── page offset ── */
+        .page-offset { padding-top: 64px; }
+      `}</style>
+
+      <header className={`nav-root ${scrolled ? "nav-scrolled" : "nav-top"}`} ref={menuRef}>
+        <div className="nav-inner">
+
+          {/* Logo */}
+          <NavLink to="Home" className="nav-logo" onClick={() => setIsOpen(false)}>
+            <div className="logo-mark">S</div>
+            <span>Salal</span>
+          </NavLink>
+
+          {/* Desktop links */}
+          <ul className="nav-links">
+            {navLinks.map(({ to, label }) => (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
+                >
+                  {label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+
+          {/* Hamburger */}
+          <button
+            className="nav-hamburger"
+            onClick={() => setIsOpen(prev => !prev)}
+            aria-label="Toggle menu"
+            aria-expanded={isOpen}
+          >
+            {isOpen ? (
+              /* X icon */
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            ) : (
+              /* hamburger icon */
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6"  x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            )}
+          </button>
         </div>
-        {isOpen && <div className="sm:hidden" id="mobile-menu">
-            <div className="space-y-1 px-2 pt-2 pb-3">
-                <NavLink to="Home" className={({isActive})=>(`block rounded-md  px-3 py-2 text-base font-medium text-white ${isActive?'bg-gray-900':'' } `)} aria-current="page">Home</NavLink>
-                <NavLink to="Skills" className={({isActive})=>(`block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white ${isActive?'bg-gray-900':'' }`)}>Skills</NavLink>
-                <NavLink to="Education" className={({isActive})=>(`block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white ${isActive?'bg-gray-900':'' }`)}>Education</NavLink>
-                <NavLink to="Projects" className={({isActive})=>(`block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white ${isActive?'bg-gray-900':'' }`)}>Projects</NavLink>
-                <NavLink to="Contact" className={({isActive})=>(`block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white ${isActive?'bg-gray-900':'' }`)}>Contacts</NavLink>
-            </div>
-        </div>}
-    </nav>
-)}
 
+        {/* Mobile dropdown */}
+        <div className={`mobile-menu${isOpen ? " open" : ""}`} aria-hidden={!isOpen}>
+          <div className="mobile-menu-inner">
+            {navLinks.map(({ to, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) => `mobile-link${isActive ? " active" : ""}`}
+                onClick={() => setIsOpen(false)}
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+      </header>
+    </>
+  );
+}
+
+/* ── FOOTER ── */
 function Footer() {
-    return (
-      <footer className="bg-gray-800 text-gray-300 py-4 mt-10">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm">© 2025 Salal. All rights reserved.</p>
-          <div className="flex space-x-4 mt-2 md:mt-0">
-            <a href="https://github.com/salal" target="_blank" className="hover:text-white">GitHub</a>
-            <a href="https://linkedin.com/in/salal" target="_blank" className="hover:text-white">LinkedIn</a>
-            <a href="mailto:salal@example.com" className="hover:text-white">Email</a>
+  return (
+    <>
+      <style>{`
+        .footer-root {
+          position: relative; z-index: 1;
+          background: rgba(7,13,20,0.8);
+          border-top: 1px solid rgba(255,255,255,0.06);
+          backdrop-filter: blur(10px);
+          padding: 2rem 2rem;
+          font-family: 'DM Sans', sans-serif;
+        }
+        .footer-inner {
+          max-width: 1300px; margin: 0 auto;
+          display: flex; flex-wrap: wrap;
+          justify-content: space-between; align-items: center;
+          gap: 1rem;
+        }
+        .footer-left { display: flex; align-items: center; gap: 0.6rem; }
+        .footer-logo-mark {
+          width: 26px; height: 26px; border-radius: 6px;
+          background: #08BDBA;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 0.8rem; font-weight: 800; color: #070d14;
+          font-family: 'Syne', sans-serif;
+        }
+        .footer-copy {
+          font-size: 0.82rem; color: #7a8fa6;
+        }
+        .footer-links {
+          display: flex; gap: 1.5rem; align-items: center;
+        }
+        .footer-link {
+          font-size: 0.82rem; color: #7a8fa6;
+          text-decoration: none;
+          transition: color 0.2s;
+          display: flex; align-items: center; gap: 0.3rem;
+        }
+        .footer-link:hover { color: #08BDBA; }
+      `}</style>
+
+      <footer className="footer-root">
+        <div className="footer-inner">
+          <div className="footer-left">
+            <div className="footer-logo-mark">S</div>
+            <span className="footer-copy">© 2025 Muhammad Salal. All rights reserved.</span>
+          </div>
+          <div className="footer-links">
+            <a href="https://github.com/Salal04" target="_blank" rel="noreferrer" className="footer-link">
+              GitHub →
+            </a>
+            <a href="https://www.linkedin.com/in/salal-shabbir-a022172b6" target="_blank" rel="noreferrer" className="footer-link">
+              LinkedIn →
+            </a>
+            <a href="mailto:salalshabbir242@gmail.com" className="footer-link">
+              Email →
+            </a>
           </div>
         </div>
       </footer>
-    );
-  }
-  
+    </>
+  );
+}
 
+/* ── LAYOUT ── */
+function Layout() {
+  return (
+    <>
+      <style>{`
+        body { margin: 0; background: #070d14; }
+        .layout-root { display: flex; flex-direction: column; min-height: 100vh; background: #070d14; }
+        .layout-main { flex: 1; padding-top: 64px; }
+      `}</style>
 
-
-function Layout()
-{
-    return (
-        <div className="flex flex-col min-h-screen">
-            <div className="w-full">
-                <NavBar/>
-            </div>
-            <div className="flex-grow bg-gray-800">
-                <Outlet/>
-            </div>
-            <div className="bg-gray-800">
-                <Footer/>
-            </div>
-        </div>
-
-    )
+      <div className="layout-root">
+        <NavBar />
+        <main className="layout-main">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
+    </>
+  );
 }
 
 export default Layout;

@@ -119,13 +119,11 @@ function Dashboard() {
           margin: 0 auto;
           width: 100%;
           box-sizing: border-box;
-          overflow: hidden;
         }
         .hero-left {
           display: flex; flex-direction: column;
           align-items: flex-start;
           min-width: 0;
-          overflow: hidden;
         }
         @media (max-width: 900px) {
           .hero-section {
@@ -153,12 +151,10 @@ function Dashboard() {
 
         .hero-name {
           font-family: 'Syne', sans-serif;
-          font-size: clamp(1.9rem, 3.2vw, 3rem);
-          font-weight: 800; line-height: 1.1;
+          font-size: clamp(2.8rem, 6vw, 5rem);
+          font-weight: 800; line-height: 1.05;
           margin: 1rem 0 0.5rem;
           animation: fadeSlideUp 0.7s 0.1s ease both;
-          word-break: break-word;
-          overflow-wrap: break-word;
         }
         .hero-name .highlight {
           background: linear-gradient(135deg, var(--cyan) 0%, #00e5ff 100%);
@@ -237,23 +233,19 @@ function Dashboard() {
           display: flex;
           justify-content: center;
           align-items: center;
-          flex-shrink: 0;
         }
         .img-ring-wrap {
           position: relative;
           display: inline-flex;
           justify-content: center;
           align-items: center;
-          flex-shrink: 0;
         }
         .img-ring {
-          position: relative;
-          width: 300px; height: 300px;
+          position: relative; width: 340px; height: 340px;
           animation: fadeSlideUp 0.7s 0.2s ease both;
           flex-shrink: 0;
         }
-        @media (max-width: 1100px) { .img-ring { width: 260px; height: 260px; } }
-        @media (max-width: 900px)  { .img-ring { width: 220px; height: 220px; } }
+        @media (max-width: 900px) { .img-ring { width: 240px; height: 240px; } }
         .img-ring::before {
           content: ''; position: absolute; inset: -3px; border-radius: 50%;
           background: conic-gradient(var(--cyan), transparent, var(--cyan));
@@ -372,12 +364,11 @@ function Dashboard() {
               <span className="highlight">Muhammad Salal</span>
             </h1>
 
-            <p className="hero-role">Ai · Computer Vision · ML/ Deep Learning · ASP.NET · Mern Stack</p>
+            <p className="hero-role">MERN Stack · React · Node.js · Blazor · AI</p>
 
             <p className="hero-bio">
-              AI & Full-Stack Developer passionate about building intelligent web applications using Deep Learning,
-              Computer Vision. Focused on creating modern AI-powered solutions
-              with clean design, real-world impact, and scalable performance.
+              Building clean, responsive, and interactive web applications tailored to client needs.
+              Based in Lahore, Pakistan — let's bring your vision to life with fast and modern web solutions!
             </p>
 
             <div className="hero-cta">
