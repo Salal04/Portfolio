@@ -37,11 +37,10 @@ const StyledWrapper = styled.div`
 
   .loadingspinner div {
     display: inline-block;
-    background: darkorange;
-      /*background: var(--text-color);*/
-      /*box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);*/
+    background: #08BDBA;
+    box-shadow: 0 0 10px rgba(8,189,186,0.5);
     border: none;
-    border-radius: 2px;
+    border-radius: 3px;
     width: var(--square);
     height: var(--square);
     position: absolute;
@@ -50,6 +49,7 @@ const StyledWrapper = styled.div`
     font-size: 6pt;
     color: black;
   }
+  .loadingspinner #square5 { background: #FFA94D; box-shadow: 0 0 10px rgba(255,169,77,0.5); }
 
   .loadingspinner #square1 {
     left: calc( 0 * var(--offset) );
