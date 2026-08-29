@@ -89,14 +89,14 @@ const ProjectList = (props) => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
         :root {
-          --cyan: #08BDBA;
+          --cyan: #08BDBA; --blueprint-blue: #4F9DFF; --pulse: #FFA94D; --schematic-line: rgba(79,157,255,0.15);
           --cyan-dim: rgba(8,189,186,0.12);
           --cyan-glow: rgba(8,189,186,0.3);
           --glass: rgba(255,255,255,0.04);
           --glass-border: rgba(255,255,255,0.08);
-          --bg: #070d14;
+          --bg: #0b0f17;
           --text: #e8f0f8;
           --muted: #7a8fa6;
         }
@@ -123,7 +123,7 @@ const ProjectList = (props) => {
         }
         .filter-chip:hover { color: var(--text); border-color: var(--cyan-glow); transform: translateY(-1px); }
         .filter-chip.active {
-          color: #070d14; background: var(--cyan);
+          color: #0b0f17; background: var(--cyan);
           border-color: var(--cyan); font-weight: 700;
           box-shadow: 0 0 16px var(--cyan-glow);
         }
@@ -165,6 +165,23 @@ const ProjectList = (props) => {
           opacity: 0; transition: opacity 0.3s;
         }
         .project-card:hover::before { opacity: 1; }
+
+        /* ── blueprint-style corner brackets on hover ── */
+        .card-corner {
+          position: absolute; width: 16px; height: 16px;
+          border: 2px solid var(--blueprint-blue);
+          opacity: 0; transition: opacity 0.25s, transform 0.25s;
+          pointer-events: none;
+        }
+        .corner-tl { top: 8px; left: 8px; border-right: none; border-bottom: none; transform: translate(4px, 4px); }
+        .corner-br { bottom: 8px; right: 8px; border-left: none; border-top: none; transform: translate(-4px, -4px); }
+        .project-card:hover .card-corner { opacity: 0.85; transform: translate(0, 0); }
+
+        .card-top .card-mono-tag {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.68rem; color: var(--pulse);
+          letter-spacing: 0.02em; text-transform: none;
+        }
 
         .card-top {
           display: flex; justify-content: space-between; align-items: center;
@@ -222,7 +239,7 @@ const ProjectList = (props) => {
         }
         .link-github:hover { border-color: var(--cyan); color: var(--cyan); }
         .link-live {
-          color: #070d14; background: var(--cyan);
+          color: #0b0f17; background: var(--cyan);
           border: 1px solid var(--cyan);
         }
         .link-live:hover { background: #00e5ff; box-shadow: 0 0 16px var(--cyan-glow); }
@@ -412,9 +429,11 @@ function ProjectCard({ status, title, link, host, des, frameworks, admin, onDele
       onClick={onOpen}
     >
       <span className="card-number">{String(index).padStart(2, '0')}</span>
+      <span className="card-corner corner-tl" />
+      <span className="card-corner corner-br" />
 
       <div className="card-top">
-        <span className="card-label">Project</span>
+        <span className="card-label card-mono-tag">[ {String(index).padStart(2, '0')} ]</span>
         <span className={`card-badge ${badgeClass}`}>{status || 'Complete'}</span>
       </div>
 
