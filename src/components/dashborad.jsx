@@ -4,6 +4,7 @@ import CardsList from "./skillcard";
 import { NavLink } from "react-router-dom";
 import profile from "../assets/pic23.png";
 import { Helmet } from "react-helmet";
+import { createRipple, rippleCSS } from "../Js/ripple";
 
 /* ─── Floating particle background ─── */
 function Particles() {
@@ -53,7 +54,8 @@ function Chip({ icon, label, value, href }) {
       href={href || "#"}
       target={href ? "_blank" : undefined}
       rel="noreferrer"
-      className="contact-chip"
+      className="contact-chip ripple-parent"
+      onMouseDown={createRipple}
     >
       <span className="chip-icon">{icon}</span>
       <div>
@@ -80,6 +82,8 @@ function Dashboard() {
           --text: #e8f0f8;
           --muted: #7a8fa6;
         }
+
+        ${rippleCSS}
 
         .portfolio-root {
           font-family: 'DM Sans', sans-serif;
@@ -384,13 +388,15 @@ function Dashboard() {
               <a
                 href="https://drive.google.com/file/d/1xlqqwojIZrxDYpFmZf1-76vAOf3fXViF/view?usp=drive_link"
                 target="_blank" rel="noreferrer"
-                className="btn-primary"
+                className="btn-primary ripple-parent"
+                onMouseDown={createRipple}
               >
                 ↗ View Resume
               </a>
               <a
                 href="https://drive.google.com/uc?export=download&id=1xlqqwojIZrxDYpFmZf1-76vAOf3fXViF"
-                className="btn-outline"
+                className="btn-outline ripple-parent"
+                onMouseDown={createRipple}
               >
                 ↓ Download CV
               </a>
