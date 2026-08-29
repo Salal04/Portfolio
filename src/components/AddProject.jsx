@@ -1,29 +1,55 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
 import { db } from '../Js/firebase.config';
 import { createRipple, rippleCSS } from '../Js/ripple';
 
-function AddProject() {
+function AddProject({ editing, onDone }) {
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm();
   const [status, setStatus] = useState(null); // {type:'ok'|'err', msg}
+  const isEditing = !!editing;
+
+  /* pre-fill the form whenever a project is picked for editing (or cleared) */
+  useEffect(() => {
+    if (editing) {
+      reset({
+        title: editing.Title || "",
+        Description: editing.description || "",
+        Status: editing.Status || "",
+        Priority: editing.Priority && editing.Priority !== 9999 ? editing.Priority : "",
+        Framework: editing.Framework || "",
+        GitLink: editing.gitLink || "",
+        liveLink: editing.liveLink || "",
+        Featured: !!editing.Featured,
+      });
+    } else {
+      reset({ title: "", Description: "", Status: "", Priority: "", Framework: "", GitLink: "", liveLink: "", Featured: false });
+    }
+  }, [editing, reset]);
 
   const sendData = async (data) => {
+    const payload = {
+      Status: data.Status,
+      Title: data.title,
+      description: data.Description,
+      gitLink: data.GitLink || "",
+      liveLink: data.liveLink || "",       // optional — card only shows it if filled
+      Framework: data.Framework || "",     // comma separated e.g. "React, Firebase, Tailwind"
+      Priority: data.Priority ? Number(data.Priority) : 9999, // lower = shows first
+      Featured: !!data.Featured,           // shown on the Home page when checked
+    };
     try {
-      await addDoc(collection(db, "Projects"), {
-        Status: data.Status,
-        Title: data.title,
-        description: data.Description,
-        gitLink: data.GitLink || "",
-        liveLink: data.liveLink || "",       // optional — card only shows it if filled
-        Framework: data.Framework || "",     // comma separated e.g. "React, Firebase, Tailwind"
-        Priority: data.Priority ? Number(data.Priority) : 9999, // lower = shows first
-        Featured: !!data.Featured,           // shown on the Home page when checked
-      });
-      setStatus({ type: 'ok', msg: '✅ Project added successfully!' });
-      reset();
+      if (isEditing) {
+        await updateDoc(doc(db, "Projects", editing.id), payload);
+        setStatus({ type: 'ok', msg: '✅ Project updated successfully!' });
+        onDone && onDone();
+      } else {
+        await addDoc(collection(db, "Projects"), payload);
+        setStatus({ type: 'ok', msg: '✅ Project added successfully!' });
+        reset();
+      }
     } catch {
-      setStatus({ type: 'err', msg: '❌ Failed to add project.' });
+      setStatus({ type: 'err', msg: isEditing ? '❌ Failed to update project.' : '❌ Failed to add project.' });
     }
     setTimeout(() => setStatus(null), 3500);
   };
@@ -86,9 +112,19 @@ function AddProject() {
         .ap-status { margin-top: 0.8rem; font-size: 0.8rem; text-align: center; }
         .ap-status.ok { color: #22c55e; }
         .ap-status.err { color: #ef4444; }
+        .ap-actions { display: flex; gap: 0.6rem; margin-top: 0.4rem; }
+        .ap-actions .ap-submit { margin-top: 0; }
+        .ap-cancel {
+          flex: 0 0 auto;
+          background: transparent; color: var(--muted);
+          border: 1px solid var(--glass-border); border-radius: 10px;
+          padding: 0.7rem 1.1rem; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+          cursor: pointer; transition: all 0.2s;
+        }
+        .ap-cancel:hover { color: var(--text); border-color: var(--cyan); }
       `}</style>
 
-      <p className="ap-heading">Add Project</p>
+      <p className="ap-heading">{isEditing ? 'Edit Project' : 'Add Project'}</p>
 
       <form onSubmit={handleSubmit(sendData)}>
         <div className="ap-field">
@@ -136,9 +172,16 @@ function AddProject() {
           Feature this project on the Home page
         </label>
 
-        <button type="submit" className="ap-submit ripple-parent" onMouseDown={createRipple} disabled={isSubmitting}>
-          {isSubmitting ? 'Adding...' : 'Add Project'}
-        </button>
+        <div className="ap-actions">
+          <button type="submit" className="ap-submit ripple-parent" onMouseDown={createRipple} disabled={isSubmitting}>
+            {isSubmitting ? (isEditing ? 'Saving...' : 'Adding...') : (isEditing ? 'Save Changes' : 'Add Project')}
+          </button>
+          {isEditing && (
+            <button type="button" className="ap-cancel" onClick={() => onDone && onDone()}>
+              Cancel
+            </button>
+          )}
+        </div>
 
         {status && <p className={`ap-status ${status.type}`}>{status.msg}</p>}
       </form>
