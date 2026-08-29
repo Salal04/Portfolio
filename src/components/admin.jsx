@@ -64,10 +64,10 @@ function AdminPage() {
   }
 
   const sharedStyle = `
-    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
     :root {
-      --cyan: #08BDBA; --cyan-dim: rgba(8,189,186,0.12); --cyan-glow: rgba(8,189,186,0.3);
-      --bg: #070d14; --glass: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.09);
+      --cyan: #08BDBA; --blueprint-blue: #4F9DFF; --pulse: #FFA94D; --schematic-line: rgba(79,157,255,0.15); --cyan-dim: rgba(8,189,186,0.12); --cyan-glow: rgba(8,189,186,0.3);
+      --bg: #0b0f17; --glass: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.09);
       --text: #e8f0f8; --muted: #7a8fa6;
     }
     ${rippleCSS}
