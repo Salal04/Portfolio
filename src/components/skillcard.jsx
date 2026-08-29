@@ -90,13 +90,16 @@ const CardsList = (props) => {
     return ['All', ...Array.from(set).sort()];
   }, [skills]);
 
+  const onlyFeatured = !!props.onlyFeatured;
+
   const visibleSkills = useMemo(() => {
     if (!Array.isArray(skills)) return [];
+    const base = onlyFeatured ? skills.filter(s => s.featured) : skills;
     const filtered = activeCategory === 'All'
-      ? skills
-      : skills.filter(s => getCategory(s) === activeCategory);
+      ? base
+      : base.filter(s => getCategory(s) === activeCategory);
     return sortSkills(filtered, sortBy);
-  }, [skills, activeCategory, sortBy]);
+  }, [skills, activeCategory, sortBy, onlyFeatured]);
 
   if (!skills) {
     return (
@@ -276,32 +279,36 @@ const CardsList = (props) => {
         }
       `}</style>
 
-      <div className="skills-toolbar">
-        <div className="filter-chips">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              className={`chip${activeCategory === cat ? ' active' : ''}`}
-              onClick={() => setActiveCategory(cat)}
-            >
-              {cat === 'All' ? 'all' : `#${slug(cat)}`}
-            </button>
-          ))}
+      {!onlyFeatured && (
+        <div className="skills-toolbar">
+          <div className="filter-chips">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                className={`chip${activeCategory === cat ? ' active' : ''}`}
+                onClick={() => setActiveCategory(cat)}
+              >
+                {cat === 'All' ? 'all' : `#${slug(cat)}`}
+              </button>
+            ))}
+          </div>
+          <label className="sort-select-wrap">
+            sort:
+            <select className="sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="order">priority</option>
+              <option value="proficiency-desc">proficiency ↓</option>
+              <option value="proficiency-asc">proficiency ↑</option>
+              <option value="az">a–z</option>
+              <option value="newest">newest</option>
+            </select>
+          </label>
         </div>
-        <label className="sort-select-wrap">
-          sort:
-          <select className="sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="order">priority</option>
-            <option value="proficiency-desc">proficiency ↓</option>
-            <option value="proficiency-asc">proficiency ↑</option>
-            <option value="az">a–z</option>
-            <option value="newest">newest</option>
-          </select>
-        </label>
-      </div>
+      )}
 
       {visibleSkills.length === 0 ? (
-        <p className="empty-state">// no skills match this filter</p>
+        <p className="empty-state">
+          {onlyFeatured ? '// mark a skill as featured to show it here' : '// no skills match this filter'}
+        </p>
       ) : (
         <div className="skills-grid">
           {visibleSkills.map((skill, idx) => (
