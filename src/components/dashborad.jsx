@@ -75,7 +75,7 @@ function StreamingRole({ text }) {
 /* ─── Signature element: animated system-integration node diagram ─── */
 function NodeDiagram() {
   const nodes = [
-    { id: "frontend", label: "Frontend", x: 20,  y: 40  },
+    { id: "frontend", label: "Backend", x: 20,  y: 40  },
     { id: "api",      label: "API",      x: 234, y: 15  },
     { id: "llm",      label: "LLM",      x: 234, y: 279 },
     { id: "database", label: "Database", x: 20,  y: 260 },
