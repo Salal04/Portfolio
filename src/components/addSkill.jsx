@@ -1,105 +1,102 @@
-import React from 'react';
-import styled from 'styled-components';
+import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
-import { addDoc, collection, doc , deleteDoc } from "firebase/firestore";
+import { addDoc, collection } from "firebase/firestore";
 import { db } from '../Js/firebase.config';
+import { createRipple, rippleCSS } from '../Js/ripple';
 
 const AddSkill = () => {
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm();
+  const [status, setStatus] = useState(null);
 
-    const { register, handleSubmit } = useForm();
-    const sendData = async (data) => {
-        await addDoc(collection(db, "skills"), {
-            skill: data.skill,
-            level: data.level
-        });
-        console.log(data);
-        
+  const sendData = async (data) => {
+    try {
+      await addDoc(collection(db, "skills"), {
+        skill: data.skill,
+        level: data.level,
+      });
+      setStatus({ type: 'ok', msg: '✅ Skill added!' });
+      reset();
+    } catch {
+      setStatus({ type: 'err', msg: '❌ Failed to add skill.' });
     }
+    setTimeout(() => setStatus(null), 3000);
+  };
+
   return (
-    <StyledWrapper>
-      <form className="form m-2" 
-        onSubmit={handleSubmit(sendData)}
-      >
-        <p id="heading " className='text-white text-center p-2'>Add Skills</p>
-        <div className="field">
-          <svg className="input-icon" xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
-            <path d="M13.106 7.222c0-2.967-2.249-5.032-5.482-5.032-3.35 0-5.646 2.318-5.646 5.702 0 3.493 2.235 5.708 5.762 5.708.862 0 1.689-.123 2.304-.335v-.862c-.43.199-1.354.328-2.29.328-2.926 0-4.813-1.88-4.813-4.798 0-2.844 1.921-4.881 4.594-4.881 2.735 0 4.608 1.688 4.608 4.156 0 1.682-.554 2.769-1.416 2.769-.492 0-.772-.28-.772-.76V5.206H8.923v.834h-.11c-.266-.595-.881-.964-1.6-.964-1.4 0-2.378 1.162-2.378 2.823 0 1.737.957 2.906 2.379 2.906.8 0 1.415-.39 1.709-1.087h.11c.081.67.703 1.148 1.503 1.148 1.572 0 2.57-1.415 2.57-3.643zm-7.177.704c0-1.197.54-1.907 1.456-1.907.93 0 1.524.738 1.524 1.907S8.308 9.84 7.371 9.84c-.895 0-1.442-.725-1.442-1.914z" />
-          </svg>
-          <input {...register("skill", { required: true })} autoComplete="off" placeholder="Skill Name" className="input-field" type="text" />
+    <div className="as-wrap">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
+        :root {
+          --cyan: #08BDBA; --cyan-dim: rgba(8,189,186,0.12); --cyan-glow: rgba(8,189,186,0.3);
+          --glass: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.1);
+          --text: #e8f0f8; --muted: #7a8fa6;
+        }
+        ${rippleCSS}
+        .as-wrap {
+          font-family: 'DM Sans', sans-serif;
+          background: var(--glass);
+          border: 1px solid var(--glass-border);
+          border-radius: 16px;
+          padding: 1.4rem;
+          backdrop-filter: blur(12px);
+        }
+        .as-heading {
+          font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.05rem;
+          color: var(--text); margin: 0 0 1rem;
+          display: flex; align-items: center; gap: 0.5rem;
+        }
+        .as-heading::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan-glow); }
+        .as-field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.9rem; }
+        .as-field label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+        .as-field input {
+          background: rgba(0,0,0,0.25); border: 1px solid var(--glass-border);
+          border-radius: 8px; padding: 0.6rem 0.8rem; color: var(--text);
+          font-family: 'DM Sans', sans-serif; font-size: 0.88rem; outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .as-field input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-dim); }
+        .as-hint { font-size: 0.68rem; color: var(--muted); opacity: 0.75; }
+        .as-error { font-size: 0.7rem; color: #ef4444; }
+        .as-submit {
+          position: relative; overflow: hidden;
+          width: 100%; margin-top: 0.4rem;
+          background: var(--cyan); color: #070d14;
+          border: none; border-radius: 10px;
+          padding: 0.7rem; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+          cursor: pointer; transition: all 0.25s;
+          box-shadow: 0 0 16px var(--cyan-glow);
+        }
+        .as-submit:hover { background: #00e5ff; transform: translateY(-2px); }
+        .as-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .as-status { margin-top: 0.8rem; font-size: 0.8rem; text-align: center; }
+        .as-status.ok { color: #22c55e; }
+        .as-status.err { color: #ef4444; }
+      `}</style>
+
+      <p className="as-heading">Add Skill</p>
+
+      <form onSubmit={handleSubmit(sendData)}>
+        <div className="as-field">
+          <label>Skill Name</label>
+          <input autoComplete="off" placeholder="e.g. React.js" {...register("skill", { required: true })} />
+          {errors.skill && <span className="as-error">Skill name is required</span>}
         </div>
-        <div className="field">
-          <svg className="input-icon" xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
-            <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
-          </svg>
-          <input {...register("level", { required: true })} placeholder="Skill level" className="input-field" type="text" />
+
+        <div className="as-field">
+          <label>Level</label>
+          <input autoComplete="off" placeholder="Beginner / Intermediate / Advanced / Expert" {...register("level", { required: true })} />
+          <span className="as-hint">Controls the progress bar fill on the Skills page.</span>
+          {errors.level && <span className="as-error">Level is required</span>}
         </div>
-        <input className="button3 cursor-pointer" type='Submit' />
+
+        <button type="submit" className="as-submit ripple-parent" onMouseDown={createRipple} disabled={isSubmitting}>
+          {isSubmitting ? 'Adding...' : 'Add Skill'}
+        </button>
+
+        {status && <p className={`as-status ${status.type}`}>{status.msg}</p>}
       </form>
-    </StyledWrapper>
+    </div>
   );
-}
-
-const StyledWrapper = styled.div`
-  .form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding:10px;
-    background-color: #171717;
-    border-radius: 5px;
-  }
-
-
-  .field {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 25px;
-    padding: 0.6em;
-    border: none;
-    outline: none;
-    color: white;
-    background-color: #171717;
-    box-shadow: inset 2px 5px 10px rgb(5, 5, 5);
-  }
-
-  .input-icon {
-    height: 1.3em;
-    width: 1.3em;
-    fill: white;
-  }
-
-  .input-field {
-    background: none;
-    border: none;
-    outline: none;
-    width: 100%;
-    color: #d3d3d3;
-  }
-
-  .form .btn {
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    margin-top: 2.5em;
-  }
-
-
-
-  .button3 {
-    margin-bottom: 0.5em;
-    padding: 0.5em;
-    border-radius: 5px;
-    border: none;
-    outline: none;
-    transition: .4s ease-in-out;
-    background-color: #252525;
-    color: white;
-  }
-
-  .button3:hover {
-    background-color: red;
-    color: white;
-  }`;
+};
 
 export default AddSkill;
