@@ -18,6 +18,7 @@ function AddProject() {
         liveLink: data.liveLink || "",       // optional — card only shows it if filled
         Framework: data.Framework || "",     // comma separated e.g. "React, Firebase, Tailwind"
         Priority: data.Priority ? Number(data.Priority) : 9999, // lower = shows first
+        Featured: !!data.Featured,           // shown on the Home page when checked
       });
       setStatus({ type: 'ok', msg: '✅ Project added successfully!' });
       reset();
@@ -66,6 +67,11 @@ function AddProject() {
         .ap-error { font-size: 0.7rem; color: #ef4444; }
         .ap-row { display: flex; gap: 0.7rem; }
         .ap-row .ap-field { flex: 1; }
+        .ap-checkbox {
+          display: flex; align-items: center; gap: 0.55rem;
+          font-size: 0.82rem; color: var(--text); margin-bottom: 1rem; cursor: pointer;
+        }
+        .ap-checkbox input { width: 16px; height: 16px; accent-color: var(--cyan); cursor: pointer; }
         .ap-submit {
           position: relative; overflow: hidden;
           width: 100%; margin-top: 0.4rem;
@@ -124,6 +130,11 @@ function AddProject() {
           <label>Live Link (optional)</label>
           <input autoComplete="off" placeholder="Leave blank to hide the Live Demo button" {...register("liveLink")} />
         </div>
+
+        <label className="ap-checkbox">
+          <input type="checkbox" {...register("Featured")} />
+          Feature this project on the Home page
+        </label>
 
         <button type="submit" className="ap-submit ripple-parent" onMouseDown={createRipple} disabled={isSubmitting}>
           {isSubmitting ? 'Adding...' : 'Add Project'}
