@@ -265,6 +265,21 @@ const CardsList = (props) => {
         .skill-delete-btn .tok-comment { color: rgba(239,68,68,0.55); }
         .skill-delete-btn:hover { background: rgba(239,68,68,0.16); }
 
+        .skill-card-actions { display: flex; gap: 0.5rem; margin: 0 0.7rem 0.8rem; }
+        .skill-card-actions .skill-delete-btn { margin: 0; flex: 1; }
+        .skill-edit-btn {
+          display: block; flex: 1; padding: 0.4rem 0.5rem;
+          border-radius: 6px; text-align: left;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.72rem; cursor: pointer;
+          border: 1px solid rgba(79,157,255,0.3);
+          background: rgba(79,157,255,0.06); color: var(--blueprint-blue);
+          transition: all 0.2s;
+          position: relative; z-index: 1;
+        }
+        .skill-edit-btn .tok-comment { color: rgba(79,157,255,0.55); }
+        .skill-edit-btn:hover { background: rgba(79,157,255,0.16); }
+
         @keyframes skillIn {
           from { opacity: 0; transform: scale(0.92); }
           to   { opacity: 1; transform: scale(1); }
@@ -320,6 +335,7 @@ const CardsList = (props) => {
               fill={getProficiency(skill)}
               showDelete={props.des}
               onDelete={() => OnDelete(skill.id)}
+              onEdit={props.onEdit ? () => props.onEdit(skill) : undefined}
               delay={idx * 0.06}
               index={idx}
             />
@@ -330,7 +346,7 @@ const CardsList = (props) => {
   );
 };
 
-function SkillCard({ skill, level, category, fill, showDelete, onDelete, delay, index }) {
+function SkillCard({ skill, level, category, fill, showDelete, onDelete, onEdit, delay, index }) {
   const [visible, setVisible] = useState(false);
   const [count, setCount] = useState(0);
   const ref = React.useRef();
@@ -425,13 +441,24 @@ function SkillCard({ skill, level, category, fill, showDelete, onDelete, delay, 
       </div>
 
       {showDelete && (
-        <button
-          className="skill-delete-btn ripple-parent"
-          onMouseDown={createRipple}
-          onClick={() => { if (window.confirm(`Delete "${skill}"?`)) onDelete(); }}
-        >
-          <span className="tok-comment">// </span>{varName}.delete()
-        </button>
+        <div className="skill-card-actions">
+          {onEdit && (
+            <button
+              className="skill-edit-btn ripple-parent"
+              onMouseDown={createRipple}
+              onClick={onEdit}
+            >
+              <span className="tok-comment">// </span>{varName}.edit()
+            </button>
+          )}
+          <button
+            className="skill-delete-btn ripple-parent"
+            onMouseDown={createRipple}
+            onClick={() => { if (window.confirm(`Delete "${skill}"?`)) onDelete(); }}
+          >
+            <span className="tok-comment">// </span>{varName}.delete()
+          </button>
+        </div>
       )}
     </div>
   );
