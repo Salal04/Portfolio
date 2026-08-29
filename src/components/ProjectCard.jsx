@@ -259,6 +259,11 @@ const ProjectList = (props) => {
           border: 1px solid rgba(239,68,68,0.25); cursor: pointer;
         }
         .link-delete:hover { background: rgba(239,68,68,0.2); }
+        .link-edit {
+          color: var(--blueprint-blue); background: rgba(79,157,255,0.08);
+          border: 1px solid rgba(79,157,255,0.3); cursor: pointer;
+        }
+        .link-edit:hover { background: rgba(79,157,255,0.2); }
 
         .card-number {
           position: absolute; top: 1.2rem; right: 1.2rem;
@@ -368,6 +373,7 @@ const ProjectList = (props) => {
             frameworks={parseFrameworks(item.Framework)}
             admin={props.admin}
             onDelete={() => handleDelete(item.id)}
+            onEdit={props.onEdit ? () => props.onEdit(item) : undefined}
             onOpen={() => setSelected(item)}
           />
         ))}
@@ -426,7 +432,7 @@ const ProjectList = (props) => {
   );
 };
 
-function ProjectCard({ status, title, link, host, des, frameworks, admin, onDelete, onOpen, index }) {
+function ProjectCard({ status, title, link, host, des, frameworks, admin, onDelete, onEdit, onOpen, index }) {
   const badgeClass =
     status?.toLowerCase() === 'live' ? 'badge-live' :
     status?.toLowerCase() === 'in development' ? 'badge-dev' : 'badge-other';
@@ -485,6 +491,15 @@ function ProjectCard({ status, title, link, host, des, frameworks, admin, onDele
         >
           🔎 Details
         </button>
+        {admin && onEdit && (
+          <button
+            className="card-link link-edit ripple-parent"
+            onMouseDown={(e) => { e.stopPropagation(); createRipple(e); }}
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+          >
+            ✎ Edit
+          </button>
+        )}
         {admin && (
           <button
             className="card-link link-delete ripple-parent"
