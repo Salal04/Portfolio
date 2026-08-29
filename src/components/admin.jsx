@@ -16,6 +16,10 @@ function AdminPage() {
   const [tab, setTab] = useState("projects"); // "projects" | "skills"
   const [counts, setCounts] = useState({ projects: 0, skills: 0, live: 0 });
   const [email, setEmail] = useState("");
+  const [editingProject, setEditingProject] = useState(null);
+  const [editingSkill, setEditingSkill] = useState(null);
+  const [projectsKey, setProjectsKey] = useState(0);
+  const [skillsKey, setSkillsKey] = useState(0);
 
   /* silent auto-login on refresh */
   useEffect(() => {
@@ -191,19 +195,22 @@ function AdminPage() {
       </div>
 
       <div className="admin-tabs">
-        <button className={`admin-tab${tab === "projects" ? " active" : ""}`} onClick={() => setTab("projects")}>Projects</button>
-        <button className={`admin-tab${tab === "skills" ? " active" : ""}`} onClick={() => setTab("skills")}>Skills</button>
+        <button className={`admin-tab${tab === "projects" ? " active" : ""}`} onClick={() => { setTab("projects"); setEditingSkill(null); }}>Projects</button>
+        <button className={`admin-tab${tab === "skills" ? " active" : ""}`} onClick={() => { setTab("skills"); setEditingProject(null); }}>Skills</button>
       </div>
 
       {tab === "projects" && (
         <div className="admin-content">
           <div>
-            <p className="admin-panel-heading">Add New Project</p>
-            <AddProject />
+            <p className="admin-panel-heading">{editingProject ? "Edit Project" : "Add New Project"}</p>
+            <AddProject
+              editing={editingProject}
+              onDone={() => { setEditingProject(null); setProjectsKey((k) => k + 1); }}
+            />
           </div>
           <div className="admin-list-wrap">
             <p className="admin-panel-heading">All Projects</p>
-            <ProjectList admin={true} />
+            <ProjectList key={projectsKey} admin={true} onEdit={(item) => setEditingProject(item)} />
           </div>
         </div>
       )}
@@ -211,12 +218,15 @@ function AdminPage() {
       {tab === "skills" && (
         <div className="admin-content">
           <div>
-            <p className="admin-panel-heading">Add New Skill</p>
-            <AddSkill />
+            <p className="admin-panel-heading">{editingSkill ? "Edit Skill" : "Add New Skill"}</p>
+            <AddSkill
+              editing={editingSkill}
+              onDone={() => { setEditingSkill(null); setSkillsKey((k) => k + 1); }}
+            />
           </div>
           <div className="admin-list-wrap">
             <p className="admin-panel-heading">All Skills</p>
-            <CardsList des={true} />
+            <CardsList key={skillsKey} des={true} onEdit={(item) => setEditingSkill(item)} />
           </div>
         </div>
       )}
