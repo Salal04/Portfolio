@@ -6,9 +6,9 @@ function Projects() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
         :root {
-          --cyan: #08BDBA;
+          --cyan: #08BDBA; --blueprint-blue: #4F9DFF; --pulse: #FFA94D; --schematic-line: rgba(79,157,255,0.15);
           --cyan-dim: rgba(8,189,186,0.12);
           --muted: #7a8fa6;
           --text: #e8f0f8;
