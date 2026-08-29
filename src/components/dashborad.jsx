@@ -24,6 +24,114 @@ function Particles() {
   );
 }
 
+/* ─── Faint blueprint schematic grid backdrop ─── */
+function SchematicGrid() {
+  return <div className="schematic-grid" aria-hidden="true" />;
+}
+
+/* ─── Circuit-trace section divider (PCB-style right-angle line) ─── */
+function CircuitDivider() {
+  return (
+    <div className="circuit-divider" aria-hidden="true">
+      <svg viewBox="0 0 1200 40" preserveAspectRatio="none" className="circuit-svg">
+        <path
+          className="circuit-path"
+          d="M0,20 L340,20 L360,4 L420,4 L440,20 L760,20 L780,36 L840,36 L860,20 L1200,20"
+          fill="none"
+        />
+        <circle className="circuit-node" cx="360" cy="4" r="3" />
+        <circle className="circuit-node" cx="780" cy="36" r="3" />
+      </svg>
+    </div>
+  );
+}
+
+/* ─── Streaming / typewriter role text, LLM-response style ─── */
+function StreamingRole({ text }) {
+  const [shown, setShown] = useState(0);
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    setShown(0);
+    setDone(false);
+    let i = 0;
+    const timer = setInterval(() => {
+      i += 1;
+      setShown(i);
+      if (i >= text.length) {
+        clearInterval(timer);
+        setDone(true);
+      }
+    }, 28);
+    return () => clearInterval(timer);
+  }, [text]);
+  return (
+    <span className="stream-text">
+      {text.slice(0, shown)}
+      <span className={`stream-cursor${done ? ' stream-cursor-blink' : ''}`}>▍</span>
+    </span>
+  );
+}
+
+/* ─── Signature element: animated system-integration node diagram ─── */
+function NodeDiagram() {
+  const nodes = [
+    { id: "frontend", label: "Frontend", x: 20,  y: 40  },
+    { id: "api",      label: "API",      x: 234, y: 15  },
+    { id: "llm",      label: "LLM",      x: 234, y: 279 },
+    { id: "database", label: "Database", x: 20,  y: 260 },
+  ];
+  const hub = [160, 160];
+  const links = [
+    { from: [86, 53],  to: hub, via: [86, 160] },   // frontend
+    { from: [234, 28], to: hub, via: [234, 160] },  // api
+    { from: [234, 292], to: hub, via: [234, 160] }, // llm
+    { from: [86, 273], to: hub, via: [86, 160] },   // database
+  ];
+  return (
+    <svg className="node-diagram" viewBox="0 0 320 320" aria-hidden="true">
+      <defs>
+        <radialGradient id="hubGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="var(--cyan)" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="var(--cyan)" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+
+      {/* connector lines with right-angle bends */}
+      {links.map((l, i) => (
+        <polyline
+          key={i}
+          className="node-link"
+          points={`${l.from[0]},${l.from[1]} ${l.via[0]},${l.via[1]} ${l.to[0]},${l.to[1]}`}
+          fill="none"
+        />
+      ))}
+
+      {/* central hub glow */}
+      <circle cx={hub[0]} cy={hub[1]} r="46" fill="url(#hubGlow)" />
+
+      {/* traveling data pulses */}
+      {links.map((l, i) => (
+        <circle key={`pulse-${i}`} r="3" className="node-pulse" style={{ animationDelay: `${i * 0.6}s` }}>
+          <animateMotion
+            dur="3.2s"
+            repeatCount="indefinite"
+            path={`M${l.from[0]},${l.from[1]} L${l.via[0]},${l.via[1]} L${l.to[0]},${l.to[1]}`}
+          />
+        </circle>
+      ))}
+
+      {/* labeled blocks */}
+      {nodes.map((n) => (
+        <g key={n.id} className="node-block" transform={`translate(${n.x},${n.y})`}>
+          <rect width="66" height="26" rx="5" />
+          <circle cx="8" cy="13" r="2.5" className="node-dot" />
+          <text x="34" y="17" textAnchor="middle">{n.label}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 /* ─── Animated counter ─── */
 function Counter({ to, suffix = "" }) {
   const [count, setCount] = useState(0);
@@ -70,13 +178,13 @@ function Dashboard() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
         :root {
-          --cyan: #08BDBA;
+          --cyan: #08BDBA; --blueprint-blue: #4F9DFF; --pulse: #FFA94D; --schematic-line: rgba(79,157,255,0.15);
           --cyan-dim: rgba(8,189,186,0.15);
           --cyan-glow: rgba(8,189,186,0.35);
-          --bg: #070d14;
+          --bg: #0b0f17;
           --glass: rgba(255,255,255,0.04);
           --glass-border: rgba(255,255,255,0.08);
           --text: #e8f0f8;
@@ -92,6 +200,31 @@ function Dashboard() {
           min-height: 100vh;
           position: relative;
           overflow-x: hidden;
+        }
+
+        /* ── blueprint schematic grid backdrop ── */
+        .schematic-grid {
+          position: fixed; inset: 0; pointer-events: none; z-index: 0;
+          background-image:
+            linear-gradient(var(--schematic-line) 1px, transparent 1px),
+            linear-gradient(90deg, var(--schematic-line) 1px, transparent 1px);
+          background-size: 44px 44px;
+          mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 40%, transparent 90%);
+          -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 40%, transparent 90%);
+          opacity: 0.6;
+        }
+
+        /* ── circuit-trace divider (PCB style) ── */
+        .circuit-divider { position: relative; z-index: 1; width: 100%; line-height: 0; }
+        .circuit-svg { width: 100%; height: 24px; display: block; }
+        .circuit-path {
+          stroke: var(--schematic-line);
+          stroke-width: 1.5;
+        }
+        .circuit-node {
+          fill: var(--pulse);
+          filter: drop-shadow(0 0 4px var(--pulse));
+          animation: pulse 2s ease infinite;
         }
 
         /* ── particles ── */
@@ -174,7 +307,16 @@ function Dashboard() {
           font-size: 1.1rem; color: var(--muted); font-weight: 300;
           animation: fadeSlideUp 0.7s 0.2s ease both;
           margin-bottom: 1.2rem;
+          font-family: 'JetBrains Mono', monospace;
+          min-height: 1.6em;
         }
+        .stream-text { white-space: pre-wrap; }
+        .stream-cursor {
+          display: inline-block; color: var(--blueprint-blue);
+          margin-left: 1px; opacity: 1;
+        }
+        .stream-cursor-blink { animation: cursorBlink 1s step-end infinite; }
+        @keyframes cursorBlink { 50% { opacity: 0; } }
 
         .hero-bio {
           font-size: 0.95rem; line-height: 1.75; color: #8fa8c0;
@@ -188,13 +330,13 @@ function Dashboard() {
         }
         .btn-primary {
           display: inline-flex; align-items: center; gap: 0.5rem;
-          background: var(--cyan); color: #070d14;
+          background: var(--cyan); color: #0b0f17;
           padding: 0.75rem 1.8rem; border-radius: 8px;
           font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
           text-decoration: none; transition: all 0.25s;
           box-shadow: 0 0 20px var(--cyan-glow);
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 35px var(--cyan-glow); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 35px var(--cyan-glow), 0 0 0 4px rgba(255,169,77,0.12); }
         .btn-outline {
           display: inline-flex; align-items: center; gap: 0.5rem;
           border: 1px solid var(--glass-border); color: var(--text);
@@ -230,7 +372,7 @@ function Dashboard() {
           background: var(--glass-border);
         }
         .stat-num {
-          font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800;
+          font-family: 'JetBrains Mono', monospace; font-size: 1.7rem; font-weight: 700;
           color: var(--cyan); line-height: 1;
         }
         .stat-label { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; white-space: nowrap; }
@@ -274,7 +416,43 @@ function Dashboard() {
           position: relative; z-index: 2;
           width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
           border: 4px solid var(--bg);
-          filter: drop-shadow(0 0 30px var(--cyan-glow));
+          filter: drop-shadow(0 0 30px var(--cyan-glow)) grayscale(35%) saturate(1.3) sepia(8%) hue-rotate(140deg);
+        }
+
+        /* ── signature node diagram wrapped around hero image ── */
+        .node-diagram {
+          position: absolute;
+          top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
+          width: 435px; height: 435px;
+          z-index: 3;
+          pointer-events: none;
+        }
+        @media (max-width: 1100px) { .node-diagram { width: 377px; height: 377px; } }
+        @media (max-width: 900px)  { .node-diagram { display: none; } }
+        .node-link {
+          stroke: var(--schematic-line);
+          stroke-width: 1.4;
+        }
+        .node-pulse {
+          fill: var(--pulse);
+          filter: drop-shadow(0 0 4px var(--pulse));
+        }
+        .node-block rect {
+          fill: rgba(11,15,23,0.85);
+          stroke: var(--blueprint-blue);
+          stroke-width: 1;
+          stroke-opacity: 0.55;
+        }
+        .node-block .node-dot {
+          fill: var(--cyan);
+          animation: pulse 1.8s ease infinite;
+        }
+        .node-block text {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 9px;
+          fill: var(--text);
+          letter-spacing: 0.02em;
         }
         .img-badge {
           position: absolute; bottom: -10px; right: -20px;
@@ -355,6 +533,7 @@ function Dashboard() {
       `}</style>
 
       <div className="portfolio-root">
+        <SchematicGrid />
         <Particles />
 
         <Helmet>
@@ -376,7 +555,9 @@ function Dashboard() {
               <span className="highlight">Muhammad Salal</span>
             </h1>
 
-            <p className="hero-role">Ai · Computer Vision · ML/ Deep Learning · ASP.NET · Mern Stack</p>
+            <p className="hero-role">
+              <StreamingRole text="AI · Computer Vision · ML / Deep Learning · ASP.NET · MERN Stack" />
+            </p>
 
             <p className="hero-bio">
               AI & Full-Stack Developer passionate about building intelligent web applications using Deep Learning,
@@ -421,6 +602,7 @@ function Dashboard() {
           {/* Right col — image */}
           <div className="hero-img-col">
             <div className="img-ring-wrap">
+              <NodeDiagram />
               <div className="img-ring">
                 <img src={profile} alt="Muhammad Salal" className="hero-img" />
               </div>
@@ -440,7 +622,7 @@ function Dashboard() {
           <Chip icon="💬" label="WhatsApp" value="+92 336 4531083" href="https://wa.me/923364531083" />
         </div>
 
-        <div className="glow-divider" />
+        <CircuitDivider />
 
         {/* ── SKILLS ── */}
         <section className="section-wrap">
@@ -451,7 +633,7 @@ function Dashboard() {
           <CardsList admin={false} />
         </section>
 
-        <div className="glow-divider" />
+        <CircuitDivider />
 
         {/* ── PROJECTS ── */}
         <section className="section-wrap">
