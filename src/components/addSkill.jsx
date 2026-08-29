@@ -14,7 +14,7 @@ const LEVEL_DEFAULTS = {
 };
 
 const CATEGORIES = [
-  "Frontend", "Backend", "Database", "DevOps & Tools", "Design", "Language", "Other",
+  "Frontend", "Backend", "Database", "DevOps & Tools", "Design", "Language","AI/ML" ,"Other",
 ];
 
 const AddSkill = () => {
