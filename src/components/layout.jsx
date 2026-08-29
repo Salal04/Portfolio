@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { NavLink, Outlet } from "react-router-dom";
+import { createRipple, rippleCSS } from "../Js/ripple";
 
 const navLinks = [
   { to: "Home",      label: "Home" },
@@ -45,6 +46,8 @@ function NavBar() {
           --text:        #e8f0f8;
           --muted:       #7a8fa6;
         }
+
+        ${rippleCSS}
 
         /* ── navbar wrapper ── */
         .nav-root {
@@ -213,7 +216,8 @@ function NavBar() {
               <li key={to}>
                 <NavLink
                   to={to}
-                  className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
+                  className={({ isActive }) => `nav-link ripple-parent${isActive ? " active" : ""}`}
+                  onMouseDown={createRipple}
                 >
                   {label}
                 </NavLink>
@@ -223,7 +227,8 @@ function NavBar() {
 
           {/* Hamburger */}
           <button
-            className="nav-hamburger"
+            className="nav-hamburger ripple-parent"
+            onMouseDown={createRipple}
             onClick={() => setIsOpen(prev => !prev)}
             aria-label="Toggle menu"
             aria-expanded={isOpen}
