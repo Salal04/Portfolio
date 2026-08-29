@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useForm } from "react-hook-form";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from '../Js/firebase.config';
 import { createRipple, rippleCSS } from '../Js/ripple';
 import { useState } from 'react';
@@ -17,34 +17,57 @@ const CATEGORIES = [
   "Frontend", "Backend", "Database", "DevOps & Tools", "Design", "Language","AI/ML" ,"Other",
 ];
 
-const AddSkill = () => {
+const AddSkill = ({ editing, onDone }) => {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } =
     useForm({ defaultValues: { order: 0 } });
   const [status, setStatus] = useState(null);
   const levelWatch = watch("level");
+  const isEditing = !!editing;
 
   /* auto-suggest a proficiency % whenever the level changes, still editable by hand */
   useEffect(() => {
-    if (levelWatch && LEVEL_DEFAULTS[levelWatch] !== undefined) {
+    if (levelWatch && LEVEL_DEFAULTS[levelWatch] !== undefined && !isEditing) {
       setValue("proficiency", LEVEL_DEFAULTS[levelWatch], { shouldValidate: true });
     }
-  }, [levelWatch, setValue]);
+  }, [levelWatch, setValue, isEditing]);
+
+  /* pre-fill the form whenever a skill is picked for editing (or cleared) */
+  useEffect(() => {
+    if (editing) {
+      reset({
+        skill: editing.skill || '',
+        category: editing.category || '',
+        level: editing.level || '',
+        proficiency: typeof editing.proficiency === 'number' ? editing.proficiency : '',
+        order: typeof editing.order === 'number' ? editing.order : 0,
+        featured: !!editing.featured,
+      });
+    } else {
+      reset({ skill: '', category: '', level: '', proficiency: '', order: 0, featured: false });
+    }
+  }, [editing, reset]);
 
   const sendData = async (data) => {
+    const payload = {
+      skill: data.skill,
+      category: data.category,
+      level: data.level,
+      proficiency: Number(data.proficiency),
+      order: data.order === "" || data.order === undefined ? 0 : Number(data.order),
+      featured: !!data.featured,
+    };
     try {
-      await addDoc(collection(db, "skills"), {
-        skill: data.skill,
-        category: data.category,
-        level: data.level,
-        proficiency: Number(data.proficiency),
-        order: data.order === "" || data.order === undefined ? 0 : Number(data.order),
-        featured: !!data.featured,
-        createdAt: serverTimestamp(),
-      });
-      setStatus({ type: 'ok', msg: '✅ Skill added!' });
-      reset({ skill: '', category: '', level: '', proficiency: '', order: 0, featured: false });
+      if (isEditing) {
+        await updateDoc(doc(db, "skills", editing.id), payload);
+        setStatus({ type: 'ok', msg: '✅ Skill updated!' });
+        onDone && onDone();
+      } else {
+        await addDoc(collection(db, "skills"), { ...payload, createdAt: serverTimestamp() });
+        setStatus({ type: 'ok', msg: '✅ Skill added!' });
+        reset({ skill: '', category: '', level: '', proficiency: '', order: 0, featured: false });
+      }
     } catch {
-      setStatus({ type: 'err', msg: '❌ Failed to add skill.' });
+      setStatus({ type: 'err', msg: isEditing ? '❌ Failed to update skill.' : '❌ Failed to add skill.' });
     }
     setTimeout(() => setStatus(null), 3000);
   };
@@ -106,9 +129,19 @@ const AddSkill = () => {
         .as-status { margin-top: 0.8rem; font-size: 0.8rem; text-align: center; }
         .as-status.ok { color: #22c55e; }
         .as-status.err { color: #ef4444; }
+        .as-actions { display: flex; gap: 0.6rem; margin-top: 0.4rem; }
+        .as-actions .as-submit { margin-top: 0; }
+        .as-cancel {
+          flex: 0 0 auto;
+          background: transparent; color: var(--muted);
+          border: 1px solid var(--glass-border); border-radius: 10px;
+          padding: 0.7rem 1.1rem; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+          cursor: pointer; transition: all 0.2s;
+        }
+        .as-cancel:hover { color: var(--text); border-color: var(--cyan); }
       `}</style>
 
-      <p className="as-heading">Add Skill</p>
+      <p className="as-heading">{isEditing ? 'Edit Skill' : 'Add Skill'}</p>
 
       <form onSubmit={handleSubmit(sendData)}>
         <div className="as-field">
@@ -163,9 +196,16 @@ const AddSkill = () => {
           Feature this skill
         </label>
 
-        <button type="submit" className="as-submit ripple-parent" onMouseDown={createRipple} disabled={isSubmitting}>
-          {isSubmitting ? 'Adding...' : 'Add Skill'}
-        </button>
+        <div className="as-actions">
+          <button type="submit" className="as-submit ripple-parent" onMouseDown={createRipple} disabled={isSubmitting}>
+            {isSubmitting ? (isEditing ? 'Saving...' : 'Adding...') : (isEditing ? 'Save Changes' : 'Add Skill')}
+          </button>
+          {isEditing && (
+            <button type="button" className="as-cancel" onClick={() => onDone && onDone()}>
+              Cancel
+            </button>
+          )}
+        </div>
 
         {status && <p className={`as-status ${status.type}`}>{status.msg}</p>}
       </form>
