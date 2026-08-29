@@ -28,10 +28,10 @@ const RegisterForm = ({ onSuccess }) => {
   return (
     <div className="si-wrap">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
         :root {
-          --cyan: #08BDBA; --cyan-dim: rgba(8,189,186,0.12); --cyan-glow: rgba(8,189,186,0.3);
-          --bg: #070d14; --glass: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.1);
+          --cyan: #08BDBA; --blueprint-blue: #4F9DFF; --pulse: #FFA94D; --schematic-line: rgba(79,157,255,0.15); --cyan-dim: rgba(8,189,186,0.12); --cyan-glow: rgba(8,189,186,0.3);
+          --bg: #0b0f17; --glass: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.1);
           --text: #e8f0f8; --muted: #7a8fa6;
         }
         ${rippleCSS}
@@ -80,7 +80,7 @@ const RegisterForm = ({ onSuccess }) => {
         .si-submit {
           position: relative; overflow: hidden;
           width: 100%; margin-top: 0.4rem;
-          background: var(--cyan); color: #070d14;
+          background: var(--cyan); color: #0b0f17;
           border: none; border-radius: 10px;
           padding: 0.75rem; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.92rem;
           cursor: pointer; transition: all 0.25s;
