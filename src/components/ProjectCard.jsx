@@ -60,17 +60,23 @@ const ProjectList = (props) => {
     }
   };
 
-  const sorted = useMemo(() => {
+  const onlyFeatured = !!props.onlyFeatured;
+
+  /* home page passes onlyFeatured — everything else (Projects page, admin) sees the full list */
+  const baseData = useMemo(() => {
     if (!Array.isArray(data)) return [];
-    return [...data].sort((a, b) => priorityValue(a) - priorityValue(b));
-  }, [data]);
+    return onlyFeatured ? data.filter((item) => item.Featured) : data;
+  }, [data, onlyFeatured]);
+
+  const sorted = useMemo(() => {
+    return [...baseData].sort((a, b) => priorityValue(a) - priorityValue(b));
+  }, [baseData]);
 
   const frameworks = useMemo(() => {
-    if (!Array.isArray(data)) return [];
     const set = new Set();
-    data.forEach((item) => parseFrameworks(item.Framework).forEach((f) => set.add(f)));
+    baseData.forEach((item) => parseFrameworks(item.Framework).forEach((f) => set.add(f)));
     return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [data]);
+  }, [baseData]);
 
   const filtered = useMemo(() => {
     if (activeFramework === 'All') return sorted;
@@ -319,7 +325,7 @@ const ProjectList = (props) => {
         }
       `}</style>
 
-      {frameworks.length > 0 && (
+      {!onlyFeatured && frameworks.length > 0 && (
         <div className="filter-bar">
           <span className="filter-label">Filter:</span>
           <button
@@ -344,7 +350,11 @@ const ProjectList = (props) => {
 
       <div className="projects-grid">
         {filtered.length === 0 && (
-          <p className="empty-state">No projects match this filter yet.</p>
+          <p className="empty-state">
+            {onlyFeatured
+              ? 'No featured projects yet — mark one as featured in the admin panel.'
+              : 'No projects match this filter yet.'}
+          </p>
         )}
         {filtered.map((item, idx) => (
           <ProjectCard
