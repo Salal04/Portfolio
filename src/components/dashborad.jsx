@@ -630,7 +630,7 @@ function Dashboard() {
             <h2 className="section-title">Skills</h2>
             <NavLink to="/Skills" className="section-link">View All →</NavLink>
           </div>
-          <CardsList admin={false} />
+          <CardsList onlyFeatured />
         </section>
 
         <CircuitDivider />
@@ -641,7 +641,7 @@ function Dashboard() {
             <h2 className="section-title">Projects</h2>
             <NavLink to="/Projects" className="section-link">View All →</NavLink>
           </div>
-          <ProjectList />
+          <ProjectList onlyFeatured />
         </section>
       </div>
     </>
