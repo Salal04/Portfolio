@@ -16,6 +16,10 @@ function levelToPercent(level = '') {
   return levelMap[key] ?? 65;
 }
 
+function toNodeId(n) {
+  return `N${String(n).padStart(2, '0')}`;
+}
+
 const CardsList = (props) => {
   const [skills, setSkills] = useState('');
 
@@ -53,9 +57,9 @@ const CardsList = (props) => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
         :root {
-          --cyan: #08BDBA;
+          --cyan: #08BDBA; --blueprint-blue: #4F9DFF; --pulse: #FFA94D; --schematic-line: rgba(79,157,255,0.15);
           --cyan-dim: rgba(8,189,186,0.12);
           --cyan-glow: rgba(8,189,186,0.3);
           --glass: rgba(255,255,255,0.04);
@@ -92,6 +96,25 @@ const CardsList = (props) => {
           opacity: 0; transition: opacity 0.3s;
         }
         .skill-card:hover::after { opacity: 1; }
+
+        /* ── blueprint node stub: dot + connector line to the icon block ── */
+        .skill-node-dot {
+          position: absolute; top: 0.9rem; left: 0.9rem;
+          width: 6px; height: 6px; border-radius: 50%;
+          background: var(--pulse);
+          box-shadow: 0 0 6px var(--pulse);
+          animation: pulse 2s ease infinite;
+        }
+        .skill-node-stub {
+          position: absolute; top: calc(0.9rem + 3px); left: calc(0.9rem + 3px);
+          width: 1px; height: 14px;
+          background: var(--schematic-line);
+        }
+        .skill-tag {
+          position: absolute; top: 0.85rem; right: 0.9rem;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.62rem; color: var(--blueprint-blue); opacity: 0.75;
+        }
 
         .skill-icon-wrap {
           width: 40px; height: 40px; border-radius: 10px;
@@ -149,6 +172,7 @@ const CardsList = (props) => {
             showDelete={props.des}
             onDelete={() => OnDelete(skill.id)}
             delay={idx * 0.06}
+            nodeId={toNodeId(idx + 1)}
           />
         ))}
       </div>
@@ -156,7 +180,7 @@ const CardsList = (props) => {
   );
 };
 
-function SkillCard({ skill, level, showDelete, onDelete, delay }) {
+function SkillCard({ skill, level, showDelete, onDelete, delay, nodeId }) {
   const [visible, setVisible] = useState(false);
   const ref = React.useRef();
   const fill = levelToPercent(level);
@@ -175,6 +199,9 @@ function SkillCard({ skill, level, showDelete, onDelete, delay }) {
       className={`skill-card${visible ? ' visible' : ''}`}
       style={{ animationDelay: `${delay}s`, '--fill': `${fill}%` }}
     >
+      <span className="skill-node-dot" />
+      <span className="skill-node-stub" />
+      {nodeId && <span className="skill-tag">[{nodeId}]</span>}
       <div className="skill-icon-wrap">⚡</div>
       <p className="skill-name">{skill}</p>
       <p className="skill-level-text">{level}</p>
