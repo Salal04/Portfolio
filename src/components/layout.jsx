@@ -34,13 +34,13 @@ function NavBar() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
         :root {
-          --cyan:        #08BDBA;
+          --cyan:        #08BDBA; --blueprint-blue: #4F9DFF; --pulse: #FFA94D; --schematic-line: rgba(79,157,255,0.15);
           --cyan-dim:    rgba(8,189,186,0.12);
           --cyan-glow:   rgba(8,189,186,0.3);
-          --bg:          #070d14;
+          --bg:          #0b0f17;
           --glass:       rgba(7,13,20,0.7);
           --glass-border:rgba(255,255,255,0.08);
           --text:        #e8f0f8;
@@ -91,7 +91,7 @@ function NavBar() {
           width: 32px; height: 32px; border-radius: 8px;
           background: var(--cyan);
           display: flex; align-items: center; justify-content: center;
-          font-size: 1rem; font-weight: 800; color: #070d14;
+          font-size: 1rem; font-weight: 800; color: #0b0f17;
           font-family: 'Syne', sans-serif;
           box-shadow: 0 0 14px var(--cyan-glow);
           transition: transform 0.25s, box-shadow 0.25s;
@@ -293,7 +293,7 @@ function Footer() {
           width: 26px; height: 26px; border-radius: 6px;
           background: #08BDBA;
           display: flex; align-items: center; justify-content: center;
-          font-size: 0.8rem; font-weight: 800; color: #070d14;
+          font-size: 0.8rem; font-weight: 800; color: #0b0f17;
           font-family: 'Syne', sans-serif;
         }
         .footer-copy {
@@ -339,8 +339,8 @@ function Layout() {
   return (
     <>
       <style>{`
-        body { margin: 0; background: #070d14; }
-        .layout-root { display: flex; flex-direction: column; min-height: 100vh; background: #070d14; }
+        body { margin: 0; background: #0b0f17; }
+        .layout-root { display: flex; flex-direction: column; min-height: 100vh; background: #0b0f17; }
         .layout-main { flex: 1; padding-top: 64px; }
       `}</style>
 
