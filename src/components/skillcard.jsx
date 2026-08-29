@@ -2,6 +2,7 @@ import { db } from "../Js/firebase.config";
 import React, { useEffect, useState } from 'react';
 import { collection, deleteDoc, getDocs, doc } from 'firebase/firestore';
 import Loader from "./loader";
+import { createRipple, rippleCSS } from "../Js/ripple";
 
 /* level label → numeric fill % */
 const levelMap = {
@@ -35,7 +36,7 @@ const CardsList = (props) => {
       await deleteDoc(doc(db, "skills", id));
       setSkills(prev => prev.filter(item => item.id !== id));
       alert("✅ Skill deleted!");
-    } catch (e) {
+    } catch {
       alert("❌ Delete failed!");
     }
   };
@@ -62,6 +63,7 @@ const CardsList = (props) => {
           --text: #e8f0f8;
           --muted: #7a8fa6;
         }
+        ${rippleCSS}
         .skills-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -180,7 +182,13 @@ function SkillCard({ skill, level, showDelete, onDelete, delay }) {
         <div className="skill-bar-fill" style={{ width: visible ? `${fill}%` : '0%' }} />
       </div>
       {showDelete && (
-        <button className="skill-delete-btn" onClick={onDelete}>🗑 Delete</button>
+        <button
+          className="skill-delete-btn ripple-parent"
+          onMouseDown={createRipple}
+          onClick={() => { if (window.confirm(`Delete "${skill}"?`)) onDelete(); }}
+        >
+          🗑 Delete
+        </button>
       )}
     </div>
   );
