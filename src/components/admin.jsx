@@ -1,87 +1,227 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import AddSkill from "./addSkill";
-import AdminSkillCard from "./skillcard";
+import CardsList from "./skillcard";
 import AddProject from "./AddProject";
 import ProjectList from "./ProjectCard";
 import RegisterForm from "./SignIn";
-import { useState } from "react";
-import { auth , db } from "../Js/firebase.config";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import CardsList from "./skillcard";
+import { auth, db } from "../Js/firebase.config";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
+import { createRipple, rippleCSS } from "../Js/ripple";
+import { Helmet } from "react-helmet";
 
-function AdminPage()
-{
-    const [username , setname] = useState();
-    const [password , setpassword] = useState();
-    const [Authenticate , setAuthantication] = useState(false);
-    
-      useEffect(() => {
-        async function getData() {
-            const storedUsername = localStorage.getItem("username");
-            const storedPassword = localStorage.getItem("Password");
-    
-            console.log("---> username", storedUsername);
-            console.log("---> Password", storedPassword);
-    
-            if (storedUsername && storedPassword) {
-                try {
-                    const userCredential = await signInWithEmailAndPassword(auth, storedUsername, storedPassword);
-                    console.log("Login Success:", userCredential.user);
-                    setAuthantication(true);
-                } catch (error) {
-                    console.error("Login Failed:", error.message);
-                    setAuthantication(false);
-                }
-    
-                setname(storedUsername);
-                setpassword(storedPassword);
-            }
+function AdminPage() {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [tab, setTab] = useState("projects"); // "projects" | "skills"
+  const [counts, setCounts] = useState({ projects: 0, skills: 0, live: 0 });
+  const [email, setEmail] = useState("");
+
+  /* silent auto-login on refresh */
+  useEffect(() => {
+    async function tryStoredLogin() {
+      const storedUsername = localStorage.getItem("username");
+      const storedPassword = localStorage.getItem("Password");
+      if (storedUsername && storedPassword) {
+        try {
+          await signInWithEmailAndPassword(auth, storedUsername, storedPassword);
+          setEmail(storedUsername);
+          setAuthenticated(true);
+        } catch {
+          localStorage.clear();
+          setAuthenticated(false);
         }
-    
-        getData();
-    }, []);
-    
-
-    function logOut()
-    {
-        console.log('Logout')
-        localStorage.clear();
-        setname(null)
-        setpassword(null)
-        setAuthantication(false)
+      }
+      setChecking(false);
     }
+    tryStoredLogin();
+  }, []);
 
-    if(Authenticate == false)
-    {
-        return (
-            <div className="w-screen  flex justify-center items-center">
-                <RegisterForm/>
-            </div>
-        )
+  /* pull quick stats once authenticated */
+  useEffect(() => {
+    if (!authenticated) return;
+    (async () => {
+      try {
+        const [projSnap, skillSnap] = await Promise.all([
+          getDocs(collection(db, "Projects")),
+          getDocs(collection(db, "skills")),
+        ]);
+        const liveCount = projSnap.docs.filter(
+          (d) => (d.data().Status || "").toLowerCase() === "live"
+        ).length;
+        setCounts({ projects: projSnap.size, skills: skillSnap.size, live: liveCount });
+      } catch (e) {
+        console.log("stat fetch error", e.message);
+      }
+    })();
+  }, [authenticated, tab]);
+
+  async function logOut() {
+    try { await signOut(auth); } catch { /* ignore */ }
+    localStorage.clear();
+    setAuthenticated(false);
+    setEmail("");
+  }
+
+  const sharedStyle = `
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+    :root {
+      --cyan: #08BDBA; --cyan-dim: rgba(8,189,186,0.12); --cyan-glow: rgba(8,189,186,0.3);
+      --bg: #070d14; --glass: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.09);
+      --text: #e8f0f8; --muted: #7a8fa6;
     }
-    return(
-        <div className="bg-gray-800 h-fit lg:mt-4 m-3">
-            <p className="text-3xl mx-2 text-white">Skills </p>
-            <div className="w-full flex lg:flex-row flex-wrap">
-                <div className="md:w-60 w-80">
-                    <AddSkill />
-                </div>
-                <div className="flex lg:flex-row md:gap-2   flex-wrap">
-                    <CardsList des={true}  />
-                </div>
-            </div>
-            <p className="text-3xl mx-2 mb-5 text-white"> Projects  </p>
-            <div className="flex lg:flex-row flex-col">
-                <div className="lg:w-60 w-80">
-                    <AddProject />
-                </div>  
-                <div>
-                    <ProjectList admin = {true}/>
-                </div>
-            </div>
-            <button onClick={logOut} className="border px-5 mb-16 mx-10 text-xl text-white rounded-2xl fixed bottom-0 right-0  py-2 bg-red-600 cursor-pointer hover:shadow-2xl hover:shadow-orange-100 hover:scale-105 transition-all duration-700"> LogOut</button>
+    ${rippleCSS}
+  `;
+
+  if (checking) {
+    return (
+      <>
+        <style>{sharedStyle}</style>
+        <div style={{ minHeight: "calc(100vh - 64px)", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)", color: "var(--muted)", fontFamily: "'DM Sans', sans-serif" }}>
+          Checking session...
         </div>
-    )
+      </>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <>
+        <style>{sharedStyle}</style>
+        <Helmet><title>Admin Login | Salal</title></Helmet>
+        <div className="si-page">
+          <RegisterForm onSuccess={(user) => { setEmail(user?.email || ""); setAuthenticated(true); }} />
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <div className="admin-root">
+      <style>{`
+        ${sharedStyle}
+        .admin-root { min-height: calc(100vh - 64px); background: var(--bg); font-family: 'DM Sans', sans-serif; }
+
+        /* ── top bar ── */
+        .admin-topbar {
+          display: flex; justify-content: space-between; align-items: center;
+          flex-wrap: wrap; gap: 1rem;
+          padding: 2.2rem 2.5rem 1.5rem;
+          max-width: 1300px; margin: 0 auto;
+        }
+        .admin-title {
+          font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.8rem; color: var(--text);
+        }
+        .admin-sub { color: var(--muted); font-size: 0.85rem; margin-top: 0.2rem; }
+        .admin-logout {
+          position: relative; overflow: hidden;
+          display: inline-flex; align-items: center; gap: 0.5rem;
+          background: rgba(239,68,68,0.1); color: #ef4444;
+          border: 1px solid rgba(239,68,68,0.3); border-radius: 10px;
+          padding: 0.6rem 1.3rem; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
+          cursor: pointer; transition: all 0.2s;
+        }
+        .admin-logout:hover { background: rgba(239,68,68,0.2); transform: translateY(-2px); }
+
+        /* ── stats ── */
+        .admin-stats {
+          display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+          gap: 1rem; max-width: 1300px; margin: 0 auto; padding: 0 2.5rem 2rem;
+        }
+        .stat-card {
+          background: var(--glass); border: 1px solid var(--glass-border); border-radius: 14px;
+          padding: 1.2rem 1.4rem; backdrop-filter: blur(10px);
+          animation: fadeUp 0.5s ease both;
+        }
+        .stat-card .num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.9rem; color: var(--cyan); line-height: 1; }
+        .stat-card .lbl { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; }
+
+        /* ── tabs ── */
+        .admin-tabs {
+          display: flex; gap: 0.5rem; max-width: 1300px; margin: 0 auto;
+          padding: 0 2.5rem; border-bottom: 1px solid var(--glass-border);
+        }
+        .admin-tab {
+          position: relative; overflow: hidden;
+          background: none; border: none; cursor: pointer;
+          color: var(--muted); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+          padding: 0.9rem 1.4rem; transition: color 0.2s;
+        }
+        .admin-tab:hover { color: var(--text); }
+        .admin-tab.active { color: var(--cyan); }
+        .admin-tab.active::after {
+          content: ''; position: absolute; left: 1.2rem; right: 1.2rem; bottom: 0; height: 2px;
+          background: var(--cyan); box-shadow: 0 0 8px var(--cyan-glow); border-radius: 2px;
+        }
+
+        /* ── content ── */
+        .admin-content {
+          max-width: 1300px; margin: 0 auto; padding: 2.2rem 2.5rem 4rem;
+          display: grid; grid-template-columns: 320px 1fr; gap: 2rem;
+          align-items: start;
+          animation: fadeUp 0.4s ease both;
+        }
+        @media (max-width: 900px) { .admin-content { grid-template-columns: 1fr; } }
+
+        .admin-panel-heading {
+          font-family: 'Syne', sans-serif; font-weight: 800; color: var(--text);
+          font-size: 1.2rem; margin-bottom: 1rem;
+        }
+        .admin-list-wrap .skills-grid, .admin-list-wrap .projects-grid { padding: 0; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
+
+      <Helmet><title>Admin Dashboard | Salal</title></Helmet>
+
+      <div className="admin-topbar">
+        <div>
+          <div className="admin-title">Admin Dashboard</div>
+          <div className="admin-sub">{email ? `Signed in as ${email}` : "Manage your portfolio content"}</div>
+        </div>
+        <button className="admin-logout ripple-parent" onMouseDown={createRipple} onClick={logOut}>
+          ⎋ Log Out
+        </button>
+      </div>
+
+      <div className="admin-stats">
+        <div className="stat-card"><div className="num">{counts.projects}</div><div className="lbl">Total Projects</div></div>
+        <div className="stat-card" style={{ animationDelay: "0.06s" }}><div className="num">{counts.live}</div><div className="lbl">Live Projects</div></div>
+        <div className="stat-card" style={{ animationDelay: "0.12s" }}><div className="num">{counts.skills}</div><div className="lbl">Total Skills</div></div>
+      </div>
+
+      <div className="admin-tabs">
+        <button className={`admin-tab${tab === "projects" ? " active" : ""}`} onClick={() => setTab("projects")}>Projects</button>
+        <button className={`admin-tab${tab === "skills" ? " active" : ""}`} onClick={() => setTab("skills")}>Skills</button>
+      </div>
+
+      {tab === "projects" && (
+        <div className="admin-content">
+          <div>
+            <p className="admin-panel-heading">Add New Project</p>
+            <AddProject />
+          </div>
+          <div className="admin-list-wrap">
+            <p className="admin-panel-heading">All Projects</p>
+            <ProjectList admin={true} />
+          </div>
+        </div>
+      )}
+
+      {tab === "skills" && (
+        <div className="admin-content">
+          <div>
+            <p className="admin-panel-heading">Add New Skill</p>
+            <AddSkill />
+          </div>
+          <div className="admin-list-wrap">
+            <p className="admin-panel-heading">All Skills</p>
+            <CardsList des={true} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default AdminPage;
