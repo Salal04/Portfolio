@@ -16,20 +16,33 @@ function levelToPercent(level = '') {
   return levelMap[key] ?? 65;
 }
 
-/* "React Native" → "reactNative" — used as the variable name in the snippet */
-function toVarName(skill = '') {
-  const cleaned = skill.replace(/[^a-zA-Z0-9]+/g, ' ').trim();
-  if (!cleaned) return 'skill';
-  return cleaned
-    .split(' ')
-    .map((w, i) => (i === 0
-      ? w.charAt(0).toLowerCase() + w.slice(1)
-      : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()))
-    .join('');
-}
-
 function slug(str = '') {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+/* first 1-2 letters of the category, used for the little badge on each card */
+function categoryInitials(cat = '') {
+  const words = cat.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '?';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+
+/* a friendly word for the proficiency number, for people who don't think in percentages */
+function fillLabel(pct) {
+  if (pct >= 90) return 'Expert';
+  if (pct >= 70) return 'Advanced';
+  if (pct >= 50) return 'Intermediate';
+  if (pct >= 30) return 'Familiar';
+  return 'Learning';
+}
+
+/* stable-ish accent color per category, purely cosmetic */
+const ACCENTS = ['#7C5CFF', '#2DD4BF', '#FF6FB0', '#FFB454', '#5EA1FF', '#9BE15D'];
+function accentFor(str = '') {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return ACCENTS[h % ACCENTS.length];
 }
 
 /* ── normalized readers, so old docs (saved before category/proficiency/order/featured existed) still work ── */
@@ -54,8 +67,6 @@ function sortSkills(list, sortBy) {
       return arr.sort((a, b) => getOrder(a) - getOrder(b) || (a.skill || '').localeCompare(b.skill || ''));
   }
 }
-
-const BAR_TICKS = 10;
 
 const CardsList = (props) => {
   const [skills, setSkills] = useState('');
@@ -105,7 +116,7 @@ const CardsList = (props) => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4rem' }}>
         <Loader />
-        <p style={{ color: '#7a8fa6', marginTop: '1rem', fontFamily: 'DM Sans, sans-serif' }}>Loading skills...</p>
+        <p style={{ color: '#8891a7', marginTop: '1rem', fontFamily: 'Inter, sans-serif' }}>Loading skills...</p>
       </div>
     );
   }
@@ -113,184 +124,148 @@ const CardsList = (props) => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
         :root {
-          --cyan: #08BDBA; --blueprint-blue: #4F9DFF; --pulse: #FFA94D; --schematic-line: rgba(79,157,255,0.15);
-          --cyan-dim: rgba(8,189,186,0.12);
-          --cyan-glow: rgba(8,189,186,0.3);
-          --glass: rgba(255,255,255,0.04);
-          --glass-border: rgba(255,255,255,0.08);
-          --text: #e8f0f8;
-          --muted: #7a8fa6;
-          --tok-kw: #C792EA;
-          --tok-var: #89DDFF;
-          --tok-prop: var(--blueprint-blue);
-          --tok-str: var(--pulse);
-          --tok-num: var(--cyan);
-          --tok-punct: #5a7086;
-          --tok-comment: #56728c;
+          --violet: #7C5CFF;
+          --mint: #2DD4BF;
+          --bg-card: rgba(255,255,255,0.045);
+          --border: rgba(255,255,255,0.09);
+          --border-hover: rgba(124,92,255,0.55);
+          --text: #EDEFF7;
+          --muted: #8891a7;
+          --track: rgba(255,255,255,0.08);
         }
         ${rippleCSS}
 
-        /* ── filter + sort toolbar ── */
+        /* ── toolbar ── */
         .skills-toolbar {
           display: flex; flex-wrap: wrap; align-items: center;
           justify-content: space-between; gap: 0.9rem;
-          margin-bottom: 1.4rem;
-          font-family: 'JetBrains Mono', monospace;
+          margin-bottom: 1.6rem;
+          font-family: 'Inter', sans-serif;
         }
         .filter-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
         .chip {
-          background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
-          color: var(--muted); font-family: 'JetBrains Mono', monospace;
-          font-size: 0.72rem; padding: 0.35rem 0.8rem; border-radius: 100px;
-          cursor: pointer; transition: all 0.2s;
+          background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+          color: var(--muted); font-family: 'Inter', sans-serif; font-weight: 500;
+          font-size: 0.8rem; padding: 0.45rem 0.95rem; border-radius: 100px;
+          cursor: pointer; transition: all 0.2s ease;
         }
-        .chip:hover { border-color: var(--cyan); color: var(--text); }
+        .chip:hover { border-color: var(--violet); color: var(--text); }
         .chip.active {
-          background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan);
-          box-shadow: 0 0 10px var(--cyan-dim);
+          background: linear-gradient(135deg, var(--violet), var(--mint));
+          border-color: transparent; color: #0b0d16; font-weight: 600;
+          box-shadow: 0 4px 16px rgba(124,92,255,0.35);
         }
         .sort-select-wrap {
           display: flex; align-items: center; gap: 0.5rem;
-          font-size: 0.72rem; color: var(--muted); flex-shrink: 0;
+          font-size: 0.78rem; color: var(--muted); flex-shrink: 0;
+          font-family: 'Inter', sans-serif;
         }
         .sort-select {
-          background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
-          color: var(--text); font-family: 'JetBrains Mono', monospace;
-          font-size: 0.72rem; padding: 0.35rem 0.6rem; border-radius: 6px;
+          background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+          color: var(--text); font-family: 'Inter', sans-serif;
+          font-size: 0.78rem; padding: 0.4rem 0.7rem; border-radius: 8px;
           cursor: pointer; outline: none;
         }
-        .sort-select:focus { border-color: var(--cyan); }
+        .sort-select:focus { border-color: var(--violet); }
         .empty-state {
-          font-family: 'JetBrains Mono', monospace; color: var(--muted);
-          font-size: 0.85rem; padding: 3rem 1rem; text-align: center; font-style: italic;
+          font-family: 'Inter', sans-serif; color: var(--muted);
+          font-size: 0.95rem; padding: 3.5rem 1rem; text-align: center;
         }
 
         .skills-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
-          gap: 1.2rem;
+          grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+          gap: 1.25rem;
         }
+
+        /* ── card ── */
         .skill-card {
-          background: var(--glass);
-          border: 1px solid var(--glass-border);
-          border-radius: 10px;
-          backdrop-filter: blur(10px);
-          transition: all 0.3s ease;
+          --accent: #7C5CFF;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 18px;
+          backdrop-filter: blur(14px);
+          padding: 1.4rem 1.3rem 1.2rem;
+          display: flex; flex-direction: column; gap: 1rem;
+          font-family: 'Inter', sans-serif;
+          transition: transform 0.35s cubic-bezier(.22,1,.36,1), border-color 0.3s, box-shadow 0.3s;
+          animation: cardIn 0.5s cubic-bezier(.22,1,.36,1) both;
           position: relative; overflow: hidden;
-          font-family: 'JetBrains Mono', monospace;
-          animation: skillIn 0.4s ease both;
-          cursor: default;
+        }
+        .skill-card::before {
+          content: '';
+          position: absolute; top: 0; left: 0; right: 0; height: 3px;
+          background: var(--accent); opacity: 0.85;
         }
         .skill-card:hover {
-          border-color: var(--cyan);
-          transform: translateY(-4px);
-          box-shadow: 0 0 24px var(--cyan-dim);
-        }
-        .skill-card::after {
-          content: '';
-          position: absolute; inset: 0;
-          background: radial-gradient(circle at top left, var(--cyan-dim) 0%, transparent 60%);
-          opacity: 0; transition: opacity 0.3s; pointer-events: none;
-        }
-        .skill-card:hover::after { opacity: 1; }
-
-        /* ── editor tab bar ── */
-        .card-tab {
-          display: flex; align-items: center; gap: 0.5rem;
-          padding: 0.55rem 0.8rem;
-          border-bottom: 1px solid var(--glass-border);
-          background: rgba(255,255,255,0.02);
-        }
-        .tab-dot {
-          width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
-          background: var(--pulse);
-          box-shadow: 0 0 6px var(--pulse);
-          animation: pulse 2s ease infinite;
-        }
-        .tab-index {
-          font-size: 0.68rem; color: var(--blueprint-blue); opacity: 0.85;
-          flex-shrink: 0;
-        }
-        .tab-name {
-          font-size: 0.68rem; color: var(--muted); font-style: italic;
-          margin-left: auto; overflow: hidden; text-overflow: ellipsis;
-          white-space: nowrap; min-width: 0;
+          transform: translateY(-6px);
+          border-color: var(--border-hover);
+          box-shadow: 0 14px 32px -12px rgba(124,92,255,0.35);
         }
 
-        /* ── code body ── */
-        .code-body { padding: 0.8rem 0.7rem 0.9rem; }
-        .code-line {
-          display: flex; align-items: baseline; gap: 0.65rem;
-          overflow-x: auto; scrollbar-width: none;
+        .card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+        .cat-badge {
+          width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.75rem;
+          color: #0b0d16;
+          background: var(--accent);
         }
-        .code-line::-webkit-scrollbar { display: none; }
-        .ln {
-          flex-shrink: 0; width: 1rem; text-align: right;
-          font-size: 0.68rem; color: rgba(122,143,166,0.4);
-          user-select: none;
-        }
-        .code {
-          font-size: 0.78rem; line-height: 1.85; white-space: nowrap;
-        }
-        .code.indent { padding-left: 1rem; }
-        .tok-kw { color: var(--tok-kw); }
-        .tok-var { color: var(--tok-var); font-weight: 600; }
-        .tok-prop { color: var(--tok-prop); }
-        .tok-str { color: var(--tok-str); }
-        .tok-num { color: var(--tok-num); font-weight: 600; }
-        .tok-punct { color: var(--tok-punct); }
-        .tok-comment { color: var(--tok-comment); font-style: italic; }
-
-        .bar-filled { color: var(--cyan); text-shadow: 0 0 8px var(--cyan-glow); letter-spacing: -1px; }
-        .bar-empty { color: rgba(255,255,255,0.1); letter-spacing: -1px; }
-
-        .cursor {
-          color: var(--cyan); margin-left: 2px;
-          animation: blink 1s step-end infinite;
+        .cat-name {
+          font-size: 0.68rem; color: var(--muted); text-transform: uppercase;
+          letter-spacing: 0.06em; margin-left: 0.15rem;
         }
 
-        .skill-delete-btn {
-          display: block; width: calc(100% - 1.4rem);
-          margin: 0 0.7rem 0.8rem; padding: 0.4rem 0.5rem;
-          border-radius: 6px; text-align: left;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.72rem; cursor: pointer;
-          border: 1px solid rgba(239,68,68,0.3);
-          background: rgba(239,68,68,0.06); color: #ef4444;
-          transition: all 0.2s;
-          position: relative; z-index: 1;
+        .ring-wrap { display: flex; align-items: center; gap: 1rem; }
+        .ring-svg { transform: rotate(-90deg); flex-shrink: 0; }
+        .ring-track { fill: none; stroke: var(--track); stroke-width: 7; }
+        .ring-fill {
+          fill: none; stroke: var(--accent); stroke-width: 7; stroke-linecap: round;
+          transition: stroke-dashoffset 0.15s linear;
         }
-        .skill-delete-btn .tok-comment { color: rgba(239,68,68,0.55); }
-        .skill-delete-btn:hover { background: rgba(239,68,68,0.16); }
+        .ring-pct {
+          font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1rem;
+          fill: var(--text);
+        }
 
-        .skill-card-actions { display: flex; gap: 0.5rem; margin: 0 0.7rem 0.8rem; }
-        .skill-card-actions .skill-delete-btn { margin: 0; flex: 1; }
+        .skill-info { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+        .skill-name {
+          font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.05rem;
+          color: var(--text); line-height: 1.2;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .skill-level-pill {
+          align-self: flex-start;
+          font-size: 0.7rem; font-weight: 600; color: var(--accent);
+          background: color-mix(in srgb, var(--accent) 16%, transparent);
+          padding: 0.2rem 0.6rem; border-radius: 100px;
+        }
+
+        .skill-actions { display: flex; gap: 0.5rem; margin-top: 0.1rem; }
+        .skill-btn {
+          flex: 1; padding: 0.5rem 0.6rem; border-radius: 10px;
+          font-family: 'Inter', sans-serif; font-weight: 500; font-size: 0.75rem;
+          cursor: pointer; transition: all 0.2s; text-align: center;
+          position: relative; z-index: 1; border: 1px solid transparent;
+        }
         .skill-edit-btn {
-          display: block; flex: 1; padding: 0.4rem 0.5rem;
-          border-radius: 6px; text-align: left;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.72rem; cursor: pointer;
-          border: 1px solid rgba(79,157,255,0.3);
-          background: rgba(79,157,255,0.06); color: var(--blueprint-blue);
-          transition: all 0.2s;
-          position: relative; z-index: 1;
+          border-color: rgba(94,161,255,0.35); background: rgba(94,161,255,0.08); color: #5EA1FF;
         }
-        .skill-edit-btn .tok-comment { color: rgba(79,157,255,0.55); }
-        .skill-edit-btn:hover { background: rgba(79,157,255,0.16); }
+        .skill-edit-btn:hover { background: rgba(94,161,255,0.18); }
+        .skill-delete-btn {
+          border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.07); color: #f87171;
+        }
+        .skill-delete-btn:hover { background: rgba(239,68,68,0.17); }
 
-        @keyframes skillIn {
-          from { opacity: 0; transform: scale(0.92); }
-          to   { opacity: 1; transform: scale(1); }
+        @keyframes cardIn {
+          from { opacity: 0; transform: translateY(14px) scale(0.96); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.35; }
-        }
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .skill-card, .ring-fill { animation: none !important; transition: none !important; }
         }
       `}</style>
 
@@ -303,18 +278,18 @@ const CardsList = (props) => {
                 className={`chip${activeCategory === cat ? ' active' : ''}`}
                 onClick={() => setActiveCategory(cat)}
               >
-                {cat === 'All' ? 'all' : `#${slug(cat)}`}
+                {cat === 'All' ? 'All' : cat}
               </button>
             ))}
           </div>
           <label className="sort-select-wrap">
-            sort:
+            Sort by
             <select className="sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="order">priority</option>
-              <option value="proficiency-desc">proficiency ↓</option>
-              <option value="proficiency-asc">proficiency ↑</option>
-              <option value="az">a–z</option>
-              <option value="newest">newest</option>
+              <option value="order">Priority</option>
+              <option value="proficiency-desc">Skill level (high → low)</option>
+              <option value="proficiency-asc">Skill level (low → high)</option>
+              <option value="az">A–Z</option>
+              <option value="newest">Newest</option>
             </select>
           </label>
         </div>
@@ -322,7 +297,7 @@ const CardsList = (props) => {
 
       {visibleSkills.length === 0 ? (
         <p className="empty-state">
-          {onlyFeatured ? '// mark a skill as featured to show it here' : '// no skills match this filter'}
+          {onlyFeatured ? 'Mark a skill as featured to show it here.' : 'No skills match this filter.'}
         </p>
       ) : (
         <div className="skills-grid">
@@ -330,14 +305,13 @@ const CardsList = (props) => {
             <SkillCard
               key={skill.id}
               skill={skill.skill}
-              level={skill.level}
+              level={level_or_dash(skill.level)}
               category={getCategory(skill)}
               fill={getProficiency(skill)}
               showDelete={props.des}
               onDelete={() => OnDelete(skill.id)}
               onEdit={props.onEdit ? () => props.onEdit(skill) : undefined}
               delay={idx * 0.06}
-              index={idx}
             />
           ))}
         </div>
@@ -346,12 +320,15 @@ const CardsList = (props) => {
   );
 };
 
-function SkillCard({ skill, level, category, fill, showDelete, onDelete, onEdit, delay, index }) {
+function level_or_dash(level) {
+  return level || '';
+}
+
+function SkillCard({ skill, level, category, fill, showDelete, onDelete, onEdit, delay }) {
   const [visible, setVisible] = useState(false);
   const [count, setCount] = useState(0);
   const ref = React.useRef();
-  const varName = toVarName(skill);
-  const idxTag = String(index).padStart(2, '0');
+  const accent = useMemo(() => accentFor(category || skill || ''), [category, skill]);
 
   useEffect(() => {
     const obs = new IntersectionObserver(([e]) => {
@@ -361,102 +338,81 @@ function SkillCard({ skill, level, category, fill, showDelete, onDelete, onEdit,
     return () => obs.disconnect();
   }, []);
 
-  /* count up like a little build log once the card scrolls into view */
   useEffect(() => {
     if (!visible) return;
     let raf;
-    const duration = 700;
+    const duration = 800;
     const start = performance.now();
     const tick = (now) => {
       const p = Math.min(1, (now - start) / duration);
-      setCount(Math.round(p * fill));
+      const eased = 1 - Math.pow(1 - p, 3);
+      setCount(Math.round(eased * fill));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => raf && cancelAnimationFrame(raf);
   }, [visible, fill]);
 
-  const filledTicks = Math.round(count / (100 / BAR_TICKS));
+  const radius = 30;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (count / 100) * circumference;
 
   return (
     <div
       ref={ref}
-      className={`skill-card${visible ? ' visible' : ''}`}
-      style={{ animationDelay: `${delay}s` }}
+      className="skill-card"
+      style={{ '--accent': accent, animationDelay: `${delay}s` }}
     >
-      <div className="card-tab">
-        <span className="tab-dot" />
-        <span className="tab-index">[{idxTag}]</span>
-        <span className="tab-name">{varName}.skill</span>
+      <div className="card-top">
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div className="cat-badge">{categoryInitials(category)}</div>
+          <span className="cat-name">{category}</span>
+        </div>
       </div>
 
-      <div className="code-body">
-        <div className="code-line">
-          <span className="ln">1</span>
-          <span className="code">
-            <span className="tok-kw">const</span>{' '}
-            <span className="tok-var">{varName}</span>{' '}
-            <span className="tok-punct">= {'{'}</span>
-          </span>
-        </div>
-        <div className="code-line">
-          <span className="ln">2</span>
-          <span className="code indent">
-            <span className="tok-prop">category:</span>{' '}
-            <span className="tok-str">"{category}"</span>
-            <span className="tok-punct">,</span>
-          </span>
-        </div>
-        <div className="code-line">
-          <span className="ln">3</span>
-          <span className="code indent">
-            <span className="tok-prop">level:</span>{' '}
-            <span className="tok-str">"{level}"</span>
-            <span className="tok-punct">,</span>
-          </span>
-        </div>
-        <div className="code-line">
-          <span className="ln">4</span>
-          <span className="code indent">
-            <span className="tok-prop">proficiency:</span>{' '}
-            <span className="tok-num">{count}</span>
-            <span className="tok-punct">,</span>
-          </span>
-        </div>
-        <div className="code-line">
-          <span className="ln">5</span>
-          <span className="code indent">
-            <span className="tok-comment">// </span>
-            <span className="bar-filled">{'█'.repeat(filledTicks)}</span>
-            <span className="bar-empty">{'░'.repeat(BAR_TICKS - filledTicks)}</span>
-          </span>
-        </div>
-        <div className="code-line">
-          <span className="ln">6</span>
-          <span className="code">
-            <span className="tok-punct">{'}'}</span>
-            <span className="cursor">▍</span>
-          </span>
+      <div className="ring-wrap">
+        <svg className="ring-svg" width="76" height="76" viewBox="0 0 76 76">
+          <circle className="ring-track" cx="38" cy="38" r={radius} />
+          <circle
+            className="ring-fill"
+            cx="38" cy="38" r={radius}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+          />
+          <text
+            className="ring-pct"
+            x="38" y="38"
+            textAnchor="middle"
+            dominantBaseline="central"
+            transform="rotate(90 38 38)"
+          >
+            {count}%
+          </text>
+        </svg>
+
+        <div className="skill-info">
+          <span className="skill-name">{skill}</span>
+          <span className="skill-level-pill">{level || fillLabel(fill)}</span>
         </div>
       </div>
 
       {showDelete && (
-        <div className="skill-card-actions">
+        <div className="skill-actions">
           {onEdit && (
             <button
-              className="skill-edit-btn ripple-parent"
+              className="skill-btn skill-edit-btn ripple-parent"
               onMouseDown={createRipple}
               onClick={onEdit}
             >
-              <span className="tok-comment">// </span>{varName}.edit()
+              Edit
             </button>
           )}
           <button
-            className="skill-delete-btn ripple-parent"
+            className="skill-btn skill-delete-btn ripple-parent"
             onMouseDown={createRipple}
             onClick={() => { if (window.confirm(`Delete "${skill}"?`)) onDelete(); }}
           >
-            <span className="tok-comment">// </span>{varName}.delete()
+            Delete
           </button>
         </div>
       )}
