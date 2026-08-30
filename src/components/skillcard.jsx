@@ -20,14 +20,6 @@ function slug(str = '') {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
-/* first 1-2 letters of the category, used for the little badge on each card */
-function categoryInitials(cat = '') {
-  const words = cat.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return '?';
-  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  return (words[0][0] + words[1][0]).toUpperCase();
-}
-
 /* a friendly word for the proficiency number, for people who don't think in percentages */
 function fillLabel(pct) {
   if (pct >= 90) return 'Expert';
@@ -183,67 +175,76 @@ const CardsList = (props) => {
         /* ── card ── */
         .skill-card {
           --accent: #7C5CFF;
-          background: var(--bg-card);
+          background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
           border: 1px solid var(--border);
-          border-radius: 18px;
-          backdrop-filter: blur(14px);
-          padding: 1.4rem 1.3rem 1.2rem;
-          display: flex; flex-direction: column; gap: 1rem;
+          border-radius: 22px;
+          backdrop-filter: blur(16px);
+          padding: 1.6rem 1.4rem 1.3rem;
+          display: flex; flex-direction: column; align-items: center; gap: 0.9rem;
           font-family: 'Inter', sans-serif;
-          transition: transform 0.35s cubic-bezier(.22,1,.36,1), border-color 0.3s, box-shadow 0.3s;
-          animation: cardIn 0.5s cubic-bezier(.22,1,.36,1) both;
+          transition: transform 0.4s cubic-bezier(.22,1,.36,1), border-color 0.35s, box-shadow 0.4s;
+          animation: cardIn 0.55s cubic-bezier(.22,1,.36,1) both;
           position: relative; overflow: hidden;
+          text-align: center;
         }
         .skill-card::before {
+          /* soft glow blob behind the ring, colored per-category */
           content: '';
-          position: absolute; top: 0; left: 0; right: 0; height: 3px;
-          background: var(--accent); opacity: 0.85;
+          position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+          width: 140px; height: 140px; border-radius: 50%;
+          background: var(--accent); opacity: 0.22; filter: blur(38px);
+          pointer-events: none; transition: opacity 0.4s;
         }
         .skill-card:hover {
-          transform: translateY(-6px);
+          transform: translateY(-8px);
           border-color: var(--border-hover);
-          box-shadow: 0 14px 32px -12px rgba(124,92,255,0.35);
+          box-shadow: 0 20px 40px -16px rgba(124,92,255,0.4);
         }
+        .skill-card:hover::before { opacity: 0.36; }
 
-        .card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
-        .cat-badge {
-          width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center;
-          font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.75rem;
-          color: #0b0d16;
-          background: var(--accent);
+        .card-top {
+          display: flex; align-items: center; gap: 0.4rem;
+          position: relative; z-index: 1;
+        }
+        .cat-dot {
+          width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+          background: var(--accent); box-shadow: 0 0 8px var(--accent);
         }
         .cat-name {
           font-size: 0.68rem; color: var(--muted); text-transform: uppercase;
-          letter-spacing: 0.06em; margin-left: 0.15rem;
+          letter-spacing: 0.09em; font-weight: 500;
         }
 
-        .ring-wrap { display: flex; align-items: center; gap: 1rem; }
+        .ring-wrap {
+          position: relative; z-index: 1;
+          display: flex; flex-direction: column; align-items: center; gap: 0.7rem;
+        }
         .ring-svg { transform: rotate(-90deg); flex-shrink: 0; }
-        .ring-track { fill: none; stroke: var(--track); stroke-width: 7; }
+        .ring-track { fill: none; stroke: var(--track); stroke-width: 6; }
         .ring-fill {
-          fill: none; stroke: var(--accent); stroke-width: 7; stroke-linecap: round;
+          fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round;
           transition: stroke-dashoffset 0.15s linear;
+          filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 60%, transparent));
         }
         .ring-pct {
-          font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1rem;
+          font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.3rem;
           fill: var(--text);
         }
 
-        .skill-info { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+        .skill-info { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; min-width: 0; width: 100%; }
         .skill-name {
-          font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.05rem;
-          color: var(--text); line-height: 1.2;
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+          font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.15rem;
+          color: var(--text); line-height: 1.25;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
         }
         .skill-level-pill {
-          align-self: flex-start;
           font-size: 0.7rem; font-weight: 600; color: var(--accent);
           background: color-mix(in srgb, var(--accent) 16%, transparent);
-          padding: 0.2rem 0.6rem; border-radius: 100px;
+          border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+          padding: 0.22rem 0.7rem; border-radius: 100px;
         }
 
-        .skill-actions { display: flex; gap: 0.5rem; margin-top: 0.1rem; }
+        .skill-actions { display: flex; gap: 0.5rem; margin-top: 0.2rem; width: 100%; position: relative; z-index: 1; }
         .skill-btn {
           flex: 1; padding: 0.5rem 0.6rem; border-radius: 10px;
           font-family: 'Inter', sans-serif; font-weight: 500; font-size: 0.75rem;
@@ -353,7 +354,7 @@ function SkillCard({ skill, level, category, fill, showDelete, onDelete, onEdit,
     return () => raf && cancelAnimationFrame(raf);
   }, [visible, fill]);
 
-  const radius = 30;
+  const radius = 42;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (count / 100) * circumference;
 
@@ -364,27 +365,25 @@ function SkillCard({ skill, level, category, fill, showDelete, onDelete, onEdit,
       style={{ '--accent': accent, animationDelay: `${delay}s` }}
     >
       <div className="card-top">
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div className="cat-badge">{categoryInitials(category)}</div>
-          <span className="cat-name">{category}</span>
-        </div>
+        <span className="cat-dot" />
+        <span className="cat-name">{category}</span>
       </div>
 
       <div className="ring-wrap">
-        <svg className="ring-svg" width="76" height="76" viewBox="0 0 76 76">
-          <circle className="ring-track" cx="38" cy="38" r={radius} />
+        <svg className="ring-svg" width="104" height="104" viewBox="0 0 104 104">
+          <circle className="ring-track" cx="52" cy="52" r={radius} />
           <circle
             className="ring-fill"
-            cx="38" cy="38" r={radius}
+            cx="52" cy="52" r={radius}
             strokeDasharray={circumference}
             strokeDashoffset={offset}
           />
           <text
             className="ring-pct"
-            x="38" y="38"
+            x="52" y="52"
             textAnchor="middle"
             dominantBaseline="central"
-            transform="rotate(90 38 38)"
+            transform="rotate(90 52 52)"
           >
             {count}%
           </text>
